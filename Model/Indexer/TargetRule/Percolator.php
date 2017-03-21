@@ -23,7 +23,11 @@ use Smile\ElasticsuiteCore\Api\Index\Bulk\BulkRequestInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Smile\ElasticsuiteCore\Api\Index\IndexOperationInterface;
 use Smile\ElasticsuiteCore\Api\Index\IndexInterface;
+use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder as QueryBuilder;
+use Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory;
+use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
 use Psr\Log\LoggerInterface;
+
 
 class Percolator
 {
@@ -68,6 +72,16 @@ class Percolator
     private $objectManager;
 
     /**
+     * @var \Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder;
+     */
+    private $queryBuilder;
+
+    /**
+     * @var \Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory
+     */
+    private $queryFactory;
+
+    /**
      * Percolator constructor.
      * @param ClientFactoryInterface             $clientFactory ES Client Factory
      * @param StoreManagerInterface              $storeManager  Store manager
@@ -83,6 +97,8 @@ class Percolator
         \Magento\Framework\Stdlib\DateTime $dateTime,
         ObjectManagerInterface $objectManager,
         LoggerInterface $logger,
+        QueryBuilder $queryBuilder,
+        QueryFactory $queryFactory,
         $indexName = 'catalog_product'
     ) {
         $this->client       = $clientFactory->createClient();
@@ -91,6 +107,8 @@ class Percolator
         $this->logger       = $logger;
         $this->indexName    = $indexName;
         $this->objectManager = $objectManager;
+        $this->queryBuilder = $queryBuilder;
+        $this->queryFactory = $queryFactory;
     }
 
     /**
@@ -361,9 +379,44 @@ class Percolator
     {
         $filter = [];
 
+        // TODO : replace me by getConditions()
         if ($rule->getConditionsSerialized()) {
-            $filter[self::CONDITIONS_TYPE] = ['match_all' => []];
+            $this->logger->debug(get_class($rule->getConditions()));
+            $this->logger->debug(gettype($rule->getConditions()->getConditions()));
+            if (is_array($rule->getConditions()->getConditions())) {
+                foreach ($rule->getConditions()->getConditions() as $condition) {
+                    $this->logger->debug(gettype($condition));
+                    if (is_object($condition)) {
+                        $this->logger->debug(get_class($condition));
+                    }
+                }
+
+            }
+
+            $this->logger->debug('---------------------------------');
+            $ruleConditions = $rule->getTranslatedConditions();
+            $this->logger->debug(get_class($ruleConditions));
+            $this->logger->debug(gettype($ruleConditions->getConditions()));
+            if (is_array($ruleConditions->getConditions())) {
+                foreach ($ruleConditions->getConditions() as $condition) {
+                    $this->logger->debug(gettype($condition));
+                    if (is_object($condition)) {
+                        $this->logger->debug(get_class($condition));
+                    }
+                }
+            }
+            $this->logger->debug(print_r($ruleConditions->getSearchQuery(), true));
+            $this->logger->debug(print_r($this->queryBuilder->buildQuery($ruleConditions->getSearchQuery()), true));
+
+
+            // $this->logger->debug(print_r($rule->getConditions(), true));
+            // die("STOP");
+
+            // $filter[self::CONDITIONS_TYPE] = ['match_all' => []];
             // $filter[self::CONDITIONS_TYPE] = $rule->getConditions()->getSearchQuery(array(), false);
+            // TODO : or delay query building ?
+            // $filter[self::CONDITIONS_TYPE] = $this->queryBuilder->buildQuery($ruleConditions->getSearchQuery());
+            $filter[self::CONDITIONS_TYPE] = $ruleConditions->getSearchQuery();
         }
 
         /*
@@ -379,7 +432,7 @@ class Percolator
      * Build Rule Percolator document data.
      *
      * @param \Magento\TargetRule\Model\Rule $rule                  Target rule
-     * @param array                     $percolatorQueryFilter An array containing combination of query filters
+     * @param array                          $percolatorQueryFilter An array containing combination of query filters
      *
      * @return array
      */
@@ -395,11 +448,18 @@ class Percolator
 
         if (!empty($filter)) {
             if (count($filter) > 1) {
-                $filter = '(' . implode(' AND ', $filter) . ')';
+                // TODO : refactor with the query building NOT producing query_string elements
+                // $filter = '(' . implode(' AND ', $filter) . ')';
+                // $filter = current($filter);
+                // $this->queryFactory->create(QueryFactory::
+                // $subQuery = $this->queryFactory->create(QueryInterface::TYPE_NOT, ['query' => $subQuery]);
+                // join the two queries in a "must" clause/query
+                $filter = $this->queryFactory->create(QueryInterface::TYPE_BOOL, $filter);
             } else {
                 $filter = current($filter);
             }
-            $percolatorQuery = ['query_string' => ['query' => $filter]];
+            // $percolatorQuery = ['query_string' => ['query' => $filter]];
+            $percolatorQuery = $this->queryBuilder->buildQuery($filter);
         }
 
         // Prevent trying to index a query containing too many boolean clauses (> to ES default limit)
@@ -414,7 +474,7 @@ class Percolator
         }
 
         // TODO this is just for tests
-        $percolatorQuery = ['match_all' => []];
+        // $percolatorQuery = ['match_all' => []];
 
         $data = [
             'query'           => $percolatorQuery,

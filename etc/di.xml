@@ -17,10 +17,32 @@
  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
+    <!-- factories
+    <type name="Smile\ElasticsuiteTargetRule\Model\Rule\Translated\Condition\CombineFactory">
+        <arguments>
+            <argument name="instanceName" xsi:type="string">Smile\ElasticsuiteTargetRule\Model\Rule\Translated\Condition\Combine</argument>
+        </arguments>
+    </type>
+
+    <type name="Smile\ElasticsuiteTargetRule\Model\Rule\Translated\Condition\ProductFactory">
+        <arguments>
+            <argument name="instanceName" xsi:type="string">Smile\ElasticsuiteTargetRule\Model\Rule\Translated\Condition\Product</argument>
+        </arguments>
+    </type>
+     -->
+
+    <!-- rewrites -->
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Action\Full"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full" />
 
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule" />
 
+    <!--
+    <preference for="Magento\TargetRule\Model\Rule\Condition\Combine"
+                type="Smile\ElasticsuiteTargetRule\Model\Rule\Condition\Combine" />
+    -->
+
+    <preference for="Magento\TargetRule\Model\Rule"
+                type="Smile\ElasticsuiteTargetRule\Model\Rule" />
 </config>
