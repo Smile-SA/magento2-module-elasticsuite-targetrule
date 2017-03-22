@@ -20,6 +20,10 @@
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Action\Full"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full" />
 
+    <!-- required because our ...\Indexer\TargetRule\Action\Full is not a subclass of ...\Indexer\TargetRule\\Action\Full -->
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule" />
+
+    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product"
+                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product" />
 </config>
