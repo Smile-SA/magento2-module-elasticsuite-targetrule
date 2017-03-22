@@ -26,6 +26,7 @@ use Smile\ElasticsuiteCore\Api\Index\IndexInterface;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder as QueryBuilder;
 use Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory;
 use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
+use Smile\ElasticsuiteCatalogRule\Model\RuleFactory;
 use Psr\Log\LoggerInterface;
 
 
@@ -40,6 +41,11 @@ class Percolator
      * The percolator id prefix for rule conditions
      */
     const CONDITIONS_TYPE = 'target_rule_conditions';
+
+    /**
+     * (Future, unused) The percolator id prefix for actions conditions
+     */
+    const ACTIONS_TYPE = 'target_rule_actions';
 
     /**
      * @var \Elasticsearch\Client
@@ -59,7 +65,7 @@ class Percolator
     /**
      * @var string
      */
-    private $indexName;
+    private $indexIdentifier;
 
     /**
      * @var \Psr\Log\LoggerInterface;
@@ -70,6 +76,11 @@ class Percolator
      * @var \Magento\Framework\ObjectManagerInterface
      */
     private $objectManager;
+
+    /**
+     * @var \Smile\ElasticsuiteCatalogRule\Model\RuleFactory
+     */
+    private $ruleFactory;
 
     /**
      * @var \Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder;
@@ -83,12 +94,16 @@ class Percolator
 
     /**
      * Percolator constructor.
-     * @param ClientFactoryInterface             $clientFactory ES Client Factory
-     * @param StoreManagerInterface              $storeManager  Store manager
-     * @param IndexOperationInterface            $indexManager  ES Index manager
-     * @param \Magento\Framework\Stdlib\DateTime $dateTime      Datetime manipulation library/helper
-     * @param LoggerInterface                    $logger        Logger
-     * @param string $indexName
+     * @param ClientFactoryInterface             $clientFactory   ES client factory
+     * @param StoreManagerInterface              $storeManager    Store manager
+     * @param IndexOperationInterface            $indexManager    ES index manager
+     * @param \Magento\Framework\Stdlib\DateTime $dateTime        Datetime manipulation library/helper
+     * @param ObjectManagerInterface             $objectManager   Object manager
+     * @param RuleFactory                        $ruleFactory     ES catalog rule factory
+     * @param LoggerInterface                    $logger          Logger
+     * @param QueryBuilder                       $queryBuilder    ES query builder
+     * @param QueryFactory                       $queryFactory    ES query component factory
+     * @param string                             $indexIdentifier ES index name/identifier (as defined in XMLs)
      */
     public function __construct(
         ClientFactoryInterface $clientFactory,
@@ -96,19 +111,21 @@ class Percolator
         IndexOperationInterface $indexManager,
         \Magento\Framework\Stdlib\DateTime $dateTime,
         ObjectManagerInterface $objectManager,
-        LoggerInterface $logger,
+        RuleFactory $ruleFactory,
         QueryBuilder $queryBuilder,
         QueryFactory $queryFactory,
-        $indexName = 'catalog_product'
+        LoggerInterface $logger,
+        $indexIdentifier = 'catalog_product'
     ) {
-        $this->client       = $clientFactory->createClient();
-        $this->storeManager = $storeManager;
-        $this->indexManager = $indexManager;
-        $this->logger       = $logger;
-        $this->indexName    = $indexName;
-        $this->objectManager = $objectManager;
-        $this->queryBuilder = $queryBuilder;
-        $this->queryFactory = $queryFactory;
+        $this->client           = $clientFactory->createClient();
+        $this->storeManager     = $storeManager;
+        $this->indexManager     = $indexManager;
+        $this->objectManager    = $objectManager;
+        $this->ruleFactory      = $ruleFactory;
+        $this->queryBuilder     = $queryBuilder;
+        $this->queryFactory     = $queryFactory;
+        $this->logger           = $logger;
+        $this->indexIdentifier  = $indexIdentifier;
     }
 
     /**
@@ -120,27 +137,11 @@ class Percolator
 
         $indexNames = array();
 
-        /*
-        foreach (Mage::app()->getWebsites() as $website) {
-            $docId = sprintf('sales_rule_%s_%s', $object->getId(), $website->getId());
-            $bulk['body'][] = [
-                'delete' => ['_index' => $this->_index->getCurrentName(), '_type' => '.percolator', '_id' => $docId]
-            ];
-
-            foreach ([self::ACTIONS_TYPE, self::CONDITIONS_TYPE] as $type) {
-                $docId = implode("_", [$type, $object->getId(), $website->getId()]);
-                $bulk['body'][] = [
-                    'delete' => ['_index' => $this->_index->getCurrentName(), '_type' => '.percolator', '_id' => $docId]
-                ];
-            }
-        }
-        */
-
         $storeIds = array_keys($this->storeManager->getStores());
 
         foreach ($storeIds as $storeId) {
             /** @var \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index */
-            $index = $this->indexManager->getIndexByName($this->indexName, $storeId);
+            $index = $this->indexManager->getIndexByName($this->indexIdentifier, $storeId);
             $indexNames[] = $index->getName();
 
             $docId = sprintf('%s_%d', self::PERCOLATOR_TYPE, $object->getId());
@@ -190,7 +191,7 @@ class Percolator
     /**
      * Reindex a single target rule.
      *
-     * @param Varien_Object $object The rule based entity.
+     * @param \Magento\Framework\DataObject $object The rule based entity.
      *
      * @return void
      */
@@ -200,54 +201,44 @@ class Percolator
             /*
             $docs = $this->_getEntityPercolator($object);
             $defaultStore = $this->storeManager->getDefaultStoreView();
-            $index        = $this->indexManager->getIndexByName($this->indexName, $defaultStore);
+            $index        = $this->indexManager->getIndexByName($this->indexIdentifier, $defaultStore);
             */
 
             $storeIds = array_keys($this->storeManager->getStores());
 
             foreach ($storeIds as $storeId) {
+                // To propagate the store context from the target rule to the ES catalog rule (which might need it)
+                $object->setStoreId($storeId);
+
                 /** @var \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index */
-                $index = $this->indexManager->getIndexByName($this->indexName, $storeId);
+                $index = $this->indexManager->getIndexByName($this->indexIdentifier, $storeId);
                 $docs  = $this->_getEntityPercolator($object, $index);
                 $this->logger->error(print_r($docs, true));
                 $this->addDocuments($docs);
 
-                // Not possible because I don't have a type declare or a TypeInterface impl.
+                // Not possible because I don't have a type declared or a TypeInterface impl.
                 /*
                 $this->indexManager->createBulk()->addDocuments(...)
                 $this->indexOperation->executeBulk($bulk);
-
-                ----
-                public function addDocument(IndexInterface $index, TypeInterface $type, $docId, array $data)
-                {
-                    $this->bulkData[] = ['index' => ['_index' => $index->getName(), '_type' => $type->getName(), '_id' => $docId]];
-                    $this->bulkData[] = $data;
-
-                    return $this;
-                }
-
-                /*
-                    $this->client->
-                    $index->addDocuments($docs)->refresh();
-                */
-
-                /*
+                ---
                     $bulk = $this->indexOperation->createBulk()->addDocuments($index, $type, $batchDocuments);
                     $this->indexOperation->executeBulk($bulk);
-                 */
+                */
 
                 /*
                     $docs = $this->_getEntityPercolator($object);
                     $this->_index->addDocuments($docs)->refresh();
                 */
             }
+
+            // $this->refreshIndex($index);
         }
     }
 
     /**
      * Generate a bulk indexing query for a given target rule.
      *
-     * @param \Magento\TargetRule\Model\Rule $                 rule   The target rule
+     * @param \Magento\TargetRule\Model\Rule                   $rule  The target rule
      * @param \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index The destination index
      *
      * @return array
@@ -371,7 +362,7 @@ class Percolator
     /**
      * Retrieve Percolator Query filter for a given rule-website couple.
      *
-     * @param \Magento\TargetRule\Model\Rule $rule    Target rule
+     * @param \Magento\TargetRule\Model\Rule $rule Target rule
      *
      * @return array
      */
@@ -379,44 +370,42 @@ class Percolator
     {
         $filter = [];
 
-        // TODO : replace me by getConditions()
-        if ($rule->getConditionsSerialized()) {
-            $this->logger->debug(get_class($rule->getConditions()));
-            $this->logger->debug(gettype($rule->getConditions()->getConditions()));
-            if (is_array($rule->getConditions()->getConditions())) {
-                foreach ($rule->getConditions()->getConditions() as $condition) {
-                    $this->logger->debug(gettype($condition));
-                    if (is_object($condition)) {
-                        $this->logger->debug(get_class($condition));
-                    }
-                }
+        if ($rule->hasConditionsSerialized()) {
+            /*
+             * replace the Combine and Product condition models
+             * "Magento\TargetRule\Model\Rule\Condition\Combine"
+             *      -> "Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine"
+             * "Magento\TargetRule\Model\Rule\Condition\Product\Attributes" ->
+             *      -> "Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product"
+             *
+             * TODO : compute this only once per rule, whatever the number of Magento stores
+             * (store it at the $rule level ?)
+             */
+            $targetRuleConditions = unserialize($rule->getConditionsSerialized());
 
-            }
+            $targetRuleConditions = json_encode($targetRuleConditions);
+            $targetRuleConditions = str_replace(
+                addslashes('Magento\TargetRule\Model\Rule\Condition\Combine'),
+                addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine'),
+                $targetRuleConditions
+            );
+            $targetRuleConditions = str_replace(
+                addslashes('Magento\TargetRule\Model\Rule\Condition\Product\Attributes'),
+                addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product'),
+                $targetRuleConditions
+            );
+            $targetRuleConditions = json_decode($targetRuleConditions, true);
 
-            $this->logger->debug('---------------------------------');
-            $ruleConditions = $rule->getTranslatedConditions();
-            $this->logger->debug(get_class($ruleConditions));
-            $this->logger->debug(gettype($ruleConditions->getConditions()));
-            if (is_array($ruleConditions->getConditions())) {
-                foreach ($ruleConditions->getConditions() as $condition) {
-                    $this->logger->debug(gettype($condition));
-                    if (is_object($condition)) {
-                        $this->logger->debug(get_class($condition));
-                    }
-                }
-            }
-            $this->logger->debug(print_r($ruleConditions->getSearchQuery(), true));
-            $this->logger->debug(print_r($this->queryBuilder->buildQuery($ruleConditions->getSearchQuery()), true));
+            // $this->logger->error(json_encode($targetRuleConditions));
 
+            /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
+            $catalogRule = $this->ruleFactory->create();
+            $catalogRule->setStoreId($rule->getStoreId());
 
-            // $this->logger->debug(print_r($rule->getConditions(), true));
-            // die("STOP");
+            $catalogRule->getConditions()->loadArray($targetRuleConditions);
 
-            // $filter[self::CONDITIONS_TYPE] = ['match_all' => []];
-            // $filter[self::CONDITIONS_TYPE] = $rule->getConditions()->getSearchQuery(array(), false);
-            // TODO : or delay query building ?
-            // $filter[self::CONDITIONS_TYPE] = $this->queryBuilder->buildQuery($ruleConditions->getSearchQuery());
-            $filter[self::CONDITIONS_TYPE] = $ruleConditions->getSearchQuery();
+            $filter[self::CONDITIONS_TYPE] = $catalogRule->getConditions()->getSearchQuery();
+
         }
 
         /*
@@ -441,18 +430,8 @@ class Percolator
         $filter = array_filter($percolatorQueryFilter);
         $percolatorQuery = ['match_all' => []];
 
-        /*
-        #** @var Cultura_ElasticSearchRule_Helper_Data $helper *#
-        $helper = Mage::helper("cultura_elasticsearchrule");
-        */
-
         if (!empty($filter)) {
             if (count($filter) > 1) {
-                // TODO : refactor with the query building NOT producing query_string elements
-                // $filter = '(' . implode(' AND ', $filter) . ')';
-                // $filter = current($filter);
-                // $this->queryFactory->create(QueryFactory::
-                // $subQuery = $this->queryFactory->create(QueryInterface::TYPE_NOT, ['query' => $subQuery]);
                 // join the two queries in a "must" clause/query
                 $filter = $this->queryFactory->create(QueryInterface::TYPE_BOOL, $filter);
             } else {
@@ -462,19 +441,23 @@ class Percolator
             $percolatorQuery = $this->queryBuilder->buildQuery($filter);
         }
 
-        // Prevent trying to index a query containing too many boolean clauses (> to ES default limit)
-        // This is meant to ensure having all rules in the percolator, even if only partially.
         $partialQuery = false;
+        /*
+         * To impl. or to remove : the query is NOT expressed as a query_string component,
+         * but the argument could be mad that this still applies to our queries
+         * ----
+         * Prevent trying to index a query containing too many boolean clauses (> to ES default limit)
+         * This is meant to ensure having all rules in the percolator, even if only partially.
+         * ---
+         * # @var Cultura_ElasticSearchRule_Helper_Data $helper #
+        $helper = Mage::helper("cultura_elasticsearchrule");
         if (isset($percolatorQuery['query_string']['query'])) {
-            // if ($helper->hasTooManyClauses($percolatorQuery['query_string']['query'])) {
-            if (false) {
+            if ($helper->hasTooManyClauses($percolatorQuery['query_string']['query'])) {
                 $percolatorQuery = ['match_all' => []];
                 $partialQuery = true;
             }
         }
-
-        // TODO this is just for tests
-        // $percolatorQuery = ['match_all' => []];
+        */
 
         $data = [
             'query'           => $percolatorQuery,

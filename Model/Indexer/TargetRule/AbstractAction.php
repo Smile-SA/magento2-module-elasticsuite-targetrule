@@ -59,7 +59,7 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
 
         foreach ($ruleCollection as $rule) {
             if (!$rule->getIsActive()) {
-                continue;
+                // continue;
             }
             // $indexResource->saveProductIndex($rule);
             $this->rulePercolatorIndexer->reindex($rule);
