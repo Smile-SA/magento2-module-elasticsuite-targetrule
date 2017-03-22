@@ -26,4 +26,12 @@
 
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product" />
+
+    <!-- plugins -->
+    <type name="\Magento\TargetRule\Model\ResourceModel\Rule\Collection">
+        <plugin name="smile_elasticsuite_target_rule_collection_add_product_filter"
+                type="Smile\ElasticsuiteTargetRule\Plugin\Rule\Collection"
+                sortOrder="10"
+                disabled="false" />
+    </type>
 </config>
