@@ -15,7 +15,7 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product;
 
-use \Magento\TargetRule\Model\Actions\Condition\Product\Attributes as TargetRuleActionAttributes
+use \Magento\TargetRule\Model\Actions\Condition\Product\Attributes as TargetRuleActionAttributes;
 
 class Attributes extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product
 {
@@ -36,44 +36,73 @@ class Attributes extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition
     }
 
     /**
+     * Get the IDs of all subcategories of the product in context
+     *
+     * @return array
+     */
+    protected function getChildrenCategoryIds()
+    {
+        $childrenCategoryIds = [];
+
+        /** @var \Magento\TargetRule\Model\Index $context */
+        $context = $this->getRule()->getContext();
+
+        $categoryIds = $context->getProduct()->getCategoryIds();
+        if (!empty($categoryIds)) {
+            /** @var \Magento\TargetRule\Model\ResourceModel\Index $resource */
+            $resource = $context->getResource();
+
+            $concatenated = $resource->getConnection()->getConcatSql(['tp.path', "'/%'"]);
+            $select = $resource->getConnection()->select()
+                ->from(
+                    ['tp' => $resource->getTable('catalog_category_entity')],
+                    []
+                )->join(
+                    ['tc' => $resource->getTable('catalog_category_entity')],
+                    "tc.path LIKE {$concatenated}",
+                    'tc.entity_id'
+                )->where(
+                    'tp.entity_id IN (?)', $categoryIds
+                )->distinct();
+            $childrenCategoryIds = $resource->getConnection()->fetchCol($select);
+        }
+
+        return $childrenCategoryIds;
+    }
+
+    /**
      * Build a search query for the current rule.
+     * Delegates to parent method after extracting the rule "value" from the context (ie the matched product)
      *
      * @param array $excludedCategories Categories excluded of query building (avoid infinite recursion).
      *
-     * @return QueryInterface
+     * @return \Smile\ElasticsuiteCore\Search\Request\QueryInterface
      */
     public function getSearchQuery($excludedCategories = [])
     {
-        if ($this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_CONSTANT) {
-            return parent::getSearchQuery($excludedCategories);
-        }
-
         if ($this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_CHILD_OF) {
             // implicit: $this->getAttribute() == 'category_ids'
-            // 1) grab categories of context product
-            // 2) grab collection of subcategories (there might be some cross-over)
-            // 3) inject those subcategories ids in condition getValue()
-            // 4) return parent::getSearchQuery(...)
-        }
 
-        // implicit: $this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_SAME_AS
-        if ($this->getAttribute() === 'category_ids') {
-            // 1) grab categories of context product
-            // 2) inject those category ids in condition getValue()
-            // 3) return parent::getSearchQuery(...)
+            $subCategories = $this->getChildrenCategoryIds();
+            $this->setValue($subCategories);
+
+        } else if ($this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_SAME_AS) {
+            /** @var \Magento\TargetRule\Model\Index $context */
+            $context = $this->getRule()->getContext();
+            /** @var \Magento\Catalog\Model\Product $product */
+            $product = $context->getProduct();
+
+            /** @var string $attribute */
+            $attribute = $this->getAttribute();
+            // Note: works as intended if $attribute is 'category_ids'
+            $value = $product->getDataUsingMethod($attribute);
+            $this->setValue($value);
+
         } else {
-            // 1) grab attribute of (getAttribute) of context product using callback/bind method
-            // object->getDataUsingMethod(...)
-            // 2) inject the values into condition getValue();
-            // 3) return parent::getSearchQuery(...)
+            // implicit : $this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_CONSTANT
+            // nothing to do ...
         }
 
-        $searchQuery = parent::getSearchQuery();
-
-        if ($this->getAttribute() === 'category_ids') {
-            $searchQuery = $this->getCategorySearchQuery($excludedCategories);
-        }
-
-        return $searchQuery;
+        return parent::getSearchQuery($excludedCategories);
     }
 }

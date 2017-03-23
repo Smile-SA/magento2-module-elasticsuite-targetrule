@@ -15,55 +15,47 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special;
 
-use \Magento\TargetRule\Model\Actions\Condition\Product\Attributes as TargetRuleActionAttributes
-
 class Price extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product
 {
-
     /**
-     * Retrieve SELECT WHERE condition for product collection
+     * Load attribute property from array
      *
-     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
-     * @param \Magento\TargetRule\Model\Index $object
-     * @param array &$bind
-     * @return \Zend_Db_Expr
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @param array $array
+     * @return $this
      */
-    public function getConditionForCollection($collection, $object, &$bind)
+    public function loadArray($array)
     {
-        /* @var $resource \Magento\TargetRule\Model\ResourceModel\Index */
-        $resource = $object->getResource();
-        $operator = $this->getOperator();
+        parent::loadArray($array);
 
-        $where = $resource->getOperatorBindCondition(
-            'price_index.min_price',
-            'final_price',
-            $operator,
-            $bind,
-            [['bindPercentOf', $this->getValue()]]
-        );
-
-        $this->logger->debug(sprintf('%s', $where));
-
-        return new \Zend_Db_Expr(sprintf('(%s)', $where));
+        if (isset($array['value_type'])) {
+            $this->setValueType($array['value_type']);
+        }
+        return $this;
     }
-    
 
     /**
      * Build a search query for the current rule.
      *
      * @param array $excludedCategories Categories excluded of query building (avoid infinite recursion).
      *
-     * @return QueryInterface
+     * @return \Smile\ElasticsuiteCore\Search\Request\QueryInterface
      */
     public function getSearchQuery($excludedCategories = [])
     {
-        $searchQuery = parent::getSearchQuery();
+        $this->setAttribute('price');
 
-        if ($this->getAttribute() === 'category_ids') {
-            $searchQuery = $this->getCategorySearchQuery($excludedCategories);
-        }
+        /** @var \Magento\TargetRule\Model\Index $context */
+        $context = $this->getRule()->getContext();
+        /* @var $resource \Magento\TargetRule\Model\ResourceModel\Index */
+        $resource = $context->getResource();
 
-        return $searchQuery;
+        /** @var \Magento\Catalog\Model\Product $product */
+        $product = $context->getProduct();
+
+        // value contains the percent in "<operator> <percent>% of <matched product price>"
+        $referencePrice = $resource->bindPercentOf($product->getFinalPrice(), $this->getValue());
+        $this->setValue($referencePrice);
+
+        return parent::getSearchQuery($excludedCategories);
     }
 }
