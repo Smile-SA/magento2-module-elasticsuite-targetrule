@@ -16,7 +16,7 @@
  */
  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- rewrites -->
+    <!-- rewrites for indexing -->
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Action\Full"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full" />
 
@@ -27,7 +27,11 @@
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product" />
 
-    <!-- plugins -->
+    <!-- rewrites for querying -->
+    <preference for="Magento\TargetRule\Model\ResourceModel\Index"
+                type="Smile\ElasticsuiteTargetRule\Model\ResourceModel\Index" />
+
+    <!-- plugins for querying -->
     <type name="\Magento\TargetRule\Model\ResourceModel\Rule\Collection">
         <plugin name="smile_elasticsuite_target_rule_collection_add_product_filter"
                 type="Smile\ElasticsuiteTargetRule\Plugin\Rule\Collection"

@@ -115,8 +115,8 @@ class Percolator
                 )
             );
 
-            // $this->logger->debug('Percolator matches id -------------');
-            // $this->logger->debug(print_r($matches, true));
+            $this->logger->debug('Percolator matches id -------------');
+            $this->logger->debug(print_r($matches, true));
 
             foreach ($matches['matches'] as $match) {
                 $percolationData = $this->client->get(
@@ -125,8 +125,8 @@ class Percolator
                 $ruleIds[] = (int) $percolationData['_source']['rule_id'];
             }
 
-            // $this->logger->debug('Matches rule ids  -------------');
-            // $this->logger->debug(print_r($ruleIds, true));
+            $this->logger->debug('Matches rule ids  -------------');
+            $this->logger->debug(print_r($ruleIds, true));
 
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
