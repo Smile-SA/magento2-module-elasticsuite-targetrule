@@ -29,7 +29,6 @@ use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
 use Smile\ElasticsuiteCatalogRule\Model\RuleFactory;
 use Psr\Log\LoggerInterface;
 
-
 /**
  * Target rule percolator indexer
  *
@@ -107,9 +106,9 @@ class Percolator
      * @param \Magento\Framework\Stdlib\DateTime $dateTime        Datetime manipulation library/helper
      * @param ObjectManagerInterface             $objectManager   Object manager
      * @param RuleFactory                        $ruleFactory     ES catalog rule factory
-     * @param LoggerInterface                    $logger          Logger
      * @param QueryBuilder                       $queryBuilder    ES query builder
      * @param QueryFactory                       $queryFactory    ES query component factory
+     * @param LoggerInterface                    $logger          Logger
      * @param string                             $indexIdentifier ES index name/identifier (as defined in XMLs)
      */
     public function __construct(
@@ -205,7 +204,7 @@ class Percolator
     {
         if (true) {
             /*
-            $docs = $this->_getEntityPercolator($object);
+            $docs = $this->getEntityPercolator($object);
             $defaultStore = $this->storeManager->getDefaultStoreView();
             $index        = $this->indexManager->getIndexByName($this->indexIdentifier, $defaultStore);
             */
@@ -218,7 +217,7 @@ class Percolator
 
                 /** @var \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index */
                 $index = $this->indexManager->getIndexByName($this->indexIdentifier, $storeId);
-                $docs  = $this->_getEntityPercolator($object, $index);
+                $docs  = $this->getEntityPercolator($object, $index);
                 $this->logger->error(print_r($docs, true));
                 $this->addDocuments($docs);
 
@@ -232,7 +231,7 @@ class Percolator
                 */
 
                 /*
-                    $docs = $this->_getEntityPercolator($object);
+                    $docs = $this->getEntityPercolator($object);
                     $this->_index->addDocuments($docs)->refresh();
                 */
             }
@@ -249,14 +248,14 @@ class Percolator
      *
      * @return array
      */
-    protected function _getEntityPercolator($rule, $index)
+    protected function getEntityPercolator($rule, $index)
     {
         $docs = [];
 
-        $percolatorQueryFilter = $this->_getPercolatorQueryFilter($rule);
+        $percolatorQueryFilter = $this->getPercolatorQueryFilter($rule);
 
         // This part create a document for the whole rule into the percolator.
-        $data  = $this->_getPercolatorRuleData($rule, $percolatorQueryFilter);
+        $data  = $this->getPercolatorRuleData($rule, $percolatorQueryFilter);
         $docId = implode('_', [$data['percolator_type'], $data['rule_id']]); // , $data['website_id']]);
         // $docs  = array_merge($docs, $this->_index->createDocument($docId, $data, '.percolator'));
         $docs  = array_merge($docs, $this->createDocument($docId, $data, $index->getName(), '.percolator'));
@@ -268,7 +267,7 @@ class Percolator
             if (empty($filter)) {
                 continue;
             }
-            $data  = $this->_getPercolatorRuleData($rule, [$filter]);
+            $data  = $this->getPercolatorRuleData($rule, [$filter]);
             $data['percolator_type'] = $filterType;
             $docId = implode('_', [$data['percolator_type'], $data['rule_id']]); // , $data['website_id']]);
             // $docs  = array_merge($docs, $this->_index->createDocument($docId, $data, '.percolator'));
@@ -294,7 +293,7 @@ class Percolator
             '_index'    => $indexName,
             '_type'     => $type,
             '_id'       => $docId,
-            '_routing'  => $docId
+            '_routing'  => $docId,
         ];
 
         if (isset($data['_parent'])) {
@@ -305,6 +304,7 @@ class Percolator
         $dataRow = $data;
 
         $result = [$headerRow, $dataRow];
+
         return $result;
     }
 
@@ -325,7 +325,7 @@ class Percolator
                 $rawBulkResponse = $this->client->bulk($bulkParams);
 
                 /**
-                 * @var BulkResponseInterface
+                 * @var \Smile\ElasticsuiteCore\Api\Index\Bulk\BulkResponseInterface $bulkResponse
                  */
                 $bulkResponse = $this->objectManager->create(
                     'Smile\ElasticsuiteCore\Api\Index\Bulk\BulkResponseInterface',
@@ -371,7 +371,7 @@ class Percolator
      *
      * @return array
      */
-    protected function _getPercolatorQueryFilter($rule)
+    protected function getPercolatorQueryFilter($rule)
     {
         $filter = [];
 
@@ -427,7 +427,7 @@ class Percolator
      *
      * @return array
      */
-    protected function _getPercolatorRuleData($rule, $percolatorQueryFilter)
+    protected function getPercolatorRuleData($rule, $percolatorQueryFilter)
     {
         $filter = array_filter($percolatorQueryFilter);
         $percolatorQuery = ['match_all' => []];

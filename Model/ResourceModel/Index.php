@@ -118,7 +118,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      *
      * @return \Smile\ElasticsuiteCatalogRule\Model\Rule
      */
-    protected function _getCatalogRuleFromTargetRule($rule)
+    protected function getCatalogRuleFromTargetRule($rule)
     {
         /*
          * Replace the Combine, Attributes and Special\Price and Product condition models
@@ -176,7 +176,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         // To propagate the store context to the catalogRule.
         $rule->setStoreId($object->getStoreId());
         /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
-        $catalogRule = $this->_getCatalogRuleFromTargetRule($rule);
+        $catalogRule = $this->getCatalogRuleFromTargetRule($rule);
         // Provide target rule application context (inc. the current product) to the ES catalog rule.
         $catalogRule->setContext($object);
 
