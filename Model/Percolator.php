@@ -26,6 +26,7 @@ use \Psr\Log\LoggerInterface;
  *
  * @category Smile
  * @package  Smile\ElasticsuiteTargetRule
+ * @author   Richard BAYET <richard.bayet@smile.fr>
  */
 class Percolator
 {
@@ -106,18 +107,17 @@ class Percolator
                             'and' => array(
                                 array('term' => array('percolator_type' => PercolatorIndexer::PERCOLATOR_TYPE)),
                                 // Also done in \Magento\TargetRule\Model\Index::getRuleCollection
-                                // but limits the amount of requests/data exchanged
-                                array('term' => array('is_active'       => true))
-                            )
+                                // but limits the amount of requests/data exchanged.
+                                array('term' => array('is_active'       => true)),
+                            ),
                         ),
-                        'percolate_format' => 'ids'
-                    )
+                        'percolate_format' => 'ids',
+                    ),
                 )
             );
 
             // $this->logger->debug('Percolator matches id -------------');
             // $this->logger->debug(print_r($matches, true));
-
             foreach ($matches['matches'] as $match) {
                 $percolationData = $this->client->get(
                     array('index' => $index->getName(), 'type' => '.percolator', 'id' => $match['_id'])
@@ -127,7 +127,6 @@ class Percolator
 
             // $this->logger->debug('Matches rule ids  -------------');
             // $this->logger->debug(print_r($ruleIds, true));
-
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
         }

@@ -30,6 +30,13 @@ use Smile\ElasticsuiteCatalogRule\Model\RuleFactory;
 use Psr\Log\LoggerInterface;
 
 
+/**
+ * Target rule percolator indexer
+ *
+ * @category Smile
+ * @package  Smile\ElasticsuiteTargetRule
+ * @author   Richard BAYET <richard.bayet@smile.fr>
+ */
 class Percolator
 {
     /**
@@ -146,7 +153,7 @@ class Percolator
 
             $docId = sprintf('%s_%d', self::PERCOLATOR_TYPE, $object->getId());
             $bulk['body'][] = [
-                'delete' => ['_index' => $index->getName(), '_type' => '.percolator', '_id' => $docId]
+                'delete' => ['_index' => $index->getName(), '_type' => '.percolator', '_id' => $docId],
             ];
 
             /*
@@ -165,7 +172,6 @@ class Percolator
 
             // $this->_index->refresh();
             $this->client->indices()->refresh(implode(',', $indexNames));
-
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
         }
@@ -207,7 +213,7 @@ class Percolator
             $storeIds = array_keys($this->storeManager->getStores());
 
             foreach ($storeIds as $storeId) {
-                // To propagate the store context from the target rule to the ES catalog rule (which might need it)
+                // To propagate the store context from the target rule to the ES catalog rule (which might need it).
                 $object->setStoreId($storeId);
 
                 /** @var \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index */
@@ -249,7 +255,7 @@ class Percolator
 
         $percolatorQueryFilter = $this->_getPercolatorQueryFilter($rule);
 
-        // This part create a document for the whole rule into the percolator
+        // This part create a document for the whole rule into the percolator.
         $data  = $this->_getPercolatorRuleData($rule, $percolatorQueryFilter);
         $docId = implode('_', [$data['percolator_type'], $data['rule_id']]); // , $data['website_id']]);
         // $docs  = array_merge($docs, $this->_index->createDocument($docId, $data, '.percolator'));
@@ -257,7 +263,7 @@ class Percolator
 
         return $docs;
 
-        // TODO update me : This part create a document for rule "actions" and rule "conditions" into the percolator
+        // TODO update me : This part create a document for rule "actions" and rule "conditions" into the percolator.
         foreach ($percolatorQueryFilter as $filterType => $filter) {
             if (empty($filter)) {
                 continue;
@@ -311,7 +317,7 @@ class Percolator
      *
      * @throws \Exception
      */
-    public function addDocuments(array $docs)
+    protected function addDocuments(array $docs)
     {
         try {
             if (!empty($docs)) {
@@ -350,7 +356,6 @@ class Percolator
                         $this->logger->error(implode(" ", $errorMessages));
                     }
                 }
-
             }
         } catch (\Exception $e) {
             throw($e);
@@ -396,8 +401,6 @@ class Percolator
             );
             $targetRuleConditions = json_decode($targetRuleConditions, true);
 
-            // $this->logger->error(json_encode($targetRuleConditions));
-
             /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
             $catalogRule = $this->ruleFactory->create();
             $catalogRule->setStoreId($rule->getStoreId());
@@ -405,7 +408,6 @@ class Percolator
             $catalogRule->getConditions()->loadArray($targetRuleConditions);
 
             $filter[self::CONDITIONS_TYPE] = $catalogRule->getConditions()->getSearchQuery();
-
         }
 
         /*
@@ -432,7 +434,7 @@ class Percolator
 
         if (!empty($filter)) {
             if (count($filter) > 1) {
-                // join the two queries in a "must" clause/query
+                // Join the two queries in a "must" clause/query.
                 $filter = $this->queryFactory->create(QueryInterface::TYPE_BOOL, $filter);
             } else {
                 $filter = current($filter);
@@ -466,7 +468,8 @@ class Percolator
             'rule_id'         => (int) $rule->getId(),
             'is_active'       => (bool) $rule->getIsActive(),
             'rule_name'       => $rule->getName(),
-            'is_partial'      => $partialQuery/*,
+            'is_partial'      => $partialQuery,
+            /*
             'from_date'       => Mage::helper('cultura_elasticsearchrule')->parseDate($rule->getFromDate()),
             'to_date'         => Mage::helper('cultura_elasticsearchrule')->parseDate($rule->getToDate()),
             */

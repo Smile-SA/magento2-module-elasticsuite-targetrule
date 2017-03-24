@@ -25,11 +25,10 @@ class Full extends \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Abstra
     /**
      * Execute Full reindex
      *
-     * @param null|array $ids
+     * @param null|array $ids IDs
      * @throws \Magento\Framework\Exception\LocalizedException
      *
      * @return void
-     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function execute($ids = null)

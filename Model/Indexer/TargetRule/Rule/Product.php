@@ -15,15 +15,23 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule;
 
-
+/**
+ * Rule product indexer proxy
+ *
+ * @category Smile
+ * @package  Smile\ElasticsuiteTargetRule
+ * @author   Richard BAYET <richard.bayet@smile.fr>
+ */
 class Product extends \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product
 {
     /**
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row $ruleProductIndexerRow
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Rows $ruleProductIndexerRows
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Action\Full $ruleProductIndexerFull
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Processor $productRuleProcessor
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Processor $ruleProductProcessor
+     * Product constructor.
+     *
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row  $ruleProductIndexerRow  Rule product row indexer
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Rows $ruleProductIndexerRows Rule product rows indexer
+     * @param \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full    $ruleProductIndexerFull Full action handler
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Processor   $productRuleProcessor   Product rule processor
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Processor   $ruleProductProcessor   Rule product processor
      */
     public function __construct(
         \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row $ruleProductIndexerRow,

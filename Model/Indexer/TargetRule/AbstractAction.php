@@ -29,6 +29,17 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate
      */
+
+    /**
+     * AbstractAction constructor.
+     *
+     * @param \Magento\TargetRule\Model\RuleFactory                          $ruleFactory           Target rule factory
+     * @param \Magento\TargetRule\Model\ResourceModel\Rule\CollectionFactory $ruleCollectionFactory Rule collection factory
+     * @param \Magento\TargetRule\Model\ResourceModel\Index                  $resource              Indexer resource model
+     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager          Store manager
+     * @param \Magento\Framework\Stdlib\DateTime\TimezoneInterface           $localeDate            Locale date converter
+     * @param Percolator                                                     $rulePercolatorIndexer Target rule percolator indexer
+     */
     public function __construct(
         \Magento\TargetRule\Model\RuleFactory $ruleFactory,
         \Magento\TargetRule\Model\ResourceModel\Rule\CollectionFactory $ruleCollectionFactory,
@@ -51,7 +62,7 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
     {
         $indexResource = $this->_resource;
 
-        // remove old cache index data
+        // Remove old cache index data.
         $this->_cleanIndex();
         $indexResource->removeProductIndex([]);
 

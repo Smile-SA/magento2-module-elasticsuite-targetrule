@@ -15,24 +15,14 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special;
 
+/**
+ * TargetRule Action Product Price (percentage) Condition search query translator model.
+ *
+ * @category Smile
+ * @package  Smile\ElasticsuiteTargetRule
+ */
 class Price extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product
 {
-    /**
-     * Load attribute property from array
-     *
-     * @param array $array
-     * @return $this
-     */
-    public function loadArray($array)
-    {
-        parent::loadArray($array);
-
-        if (isset($array['value_type'])) {
-            $this->setValueType($array['value_type']);
-        }
-        return $this;
-    }
-
     /**
      * Build a search query for the current rule.
      *
@@ -42,19 +32,22 @@ class Price extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Prod
      */
     public function getSearchQuery($excludedCategories = [])
     {
-        $this->setAttribute('price');
+        // Test below prevents to re-apply the price percentage if multiple calls on this condition.
+        if (!$this->getAttribute()) {
+            $this->setAttribute('price');
 
-        /** @var \Magento\TargetRule\Model\Index $context */
-        $context = $this->getRule()->getContext();
-        /* @var $resource \Magento\TargetRule\Model\ResourceModel\Index */
-        $resource = $context->getResource();
+            /** @var \Magento\TargetRule\Model\Index $context */
+            $context = $this->getRule()->getContext();
+            /* @var $resource \Magento\TargetRule\Model\ResourceModel\Index */
+            $resource = $context->getResource();
 
-        /** @var \Magento\Catalog\Model\Product $product */
-        $product = $context->getProduct();
+            /** @var \Magento\Catalog\Model\Product $product */
+            $product = $context->getProduct();
 
-        // value contains the percent in "<operator> <percent>% of <matched product price>"
-        $referencePrice = $resource->bindPercentOf($product->getFinalPrice(), $this->getValue());
-        $this->setValue($referencePrice);
+            // Value contains the percent in "<operator> <percent>% of <matched product price>".
+            $referencePrice = $resource->bindPercentOf($product->getFinalPrice(), $this->getValue());
+            $this->setValue($referencePrice);
+        }
 
         return parent::getSearchQuery($excludedCategories);
     }

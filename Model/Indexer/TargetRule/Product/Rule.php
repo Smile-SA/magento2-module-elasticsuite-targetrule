@@ -16,18 +16,26 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product;
 
+/**
+ * Product rule indexer proxy.
+ * Rewrite needed to inject a custom product rule full indexer.
+ *
+ * @category Smile
+ * @package  Smile\ElasticsuiteTargetRule
+ * @author   Richard BAYET <richard.bayet@smile.fr>
+ */
 class Rule extends \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule
 {
     /**
-     * Construct
+     * Constructor
      *
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row $productRuleIndexerRow
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows $productRuleIndexerRows
-     * @param \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full $productRuleIndexerFull
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Processor $ruleProductProcessor
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Processor $productRuleProcessor
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Action\Clean $productRuleIndexerClean
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\CleanDeleteProduct $productRuleIndexerCleanDeleteProduct
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row                $productRuleIndexerRow                Product rule row indexer
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows               $productRuleIndexerRows               Product rule rows indexer
+     * @param \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full                  $productRuleIndexerFull               Product rule full indexer
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Processor                 $ruleProductProcessor                 Rule product processor
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Processor                 $productRuleProcessor                 Product rule processor
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Action\Clean                           $productRuleIndexerClean              Product rule clean indexer
+     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\CleanDeleteProduct $productRuleIndexerCleanDeleteProduct Product rule clean product indexer
      */
     public function __construct(
         \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row $productRuleIndexerRow,
