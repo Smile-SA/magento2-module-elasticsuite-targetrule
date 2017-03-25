@@ -390,13 +390,14 @@ class Percolator
 
             $targetRuleConditions = json_encode($targetRuleConditions);
             $targetRuleConditions = str_replace(
-                addslashes('Magento\TargetRule\Model\Rule\Condition\Combine'),
-                addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine'),
-                $targetRuleConditions
-            );
-            $targetRuleConditions = str_replace(
-                addslashes('Magento\TargetRule\Model\Rule\Condition\Product\Attributes'),
-                addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product'),
+                [
+                    addslashes('Magento\TargetRule\Model\Rule\Condition\Combine'),
+                    addslashes('Magento\TargetRule\Model\Rule\Condition\Product\Attributes'),
+                ],
+                [
+                    addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine'),
+                    addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product'),
+                ],
                 $targetRuleConditions
             );
             $targetRuleConditions = json_decode($targetRuleConditions, true);
