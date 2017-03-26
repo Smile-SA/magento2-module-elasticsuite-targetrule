@@ -18,7 +18,7 @@ namespace Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product;
 
 /**
  * Product rule indexer proxy.
- * Rewrite needed to inject a custom product rule full indexer.
+ * Rewrite needed to inject custom indexer action models
  *
  * @category Smile
  * @package  Smile\ElasticsuiteTargetRule
@@ -29,8 +29,8 @@ class Rule extends \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule
     /**
      * Constructor
      *
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row                $productRuleIndexerRow                Product rule row indexer
-     * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows               $productRuleIndexerRows               Product rule rows indexer
+     * @param \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row      $productRuleIndexerRow                Product rule row indexer
+     * @param \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows     $productRuleIndexerRows               Product rule rows indexer
      * @param \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full                  $productRuleIndexerFull               Product rule full indexer
      * @param \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Processor                 $ruleProductProcessor                 Rule product processor
      * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Processor                 $productRuleProcessor                 Product rule processor
@@ -38,8 +38,8 @@ class Rule extends \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule
      * @param \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\CleanDeleteProduct $productRuleIndexerCleanDeleteProduct Product rule clean product indexer
      */
     public function __construct(
-        \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row $productRuleIndexerRow,
-        \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows $productRuleIndexerRows,
+        \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row $productRuleIndexerRow,
+        \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows $productRuleIndexerRows,
         \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full $productRuleIndexerFull,
         \Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Processor $ruleProductProcessor,
         \Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Processor $productRuleProcessor,

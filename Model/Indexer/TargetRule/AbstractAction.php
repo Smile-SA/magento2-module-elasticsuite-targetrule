@@ -15,6 +15,16 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule;
 
+/**
+ * Abstract action reindex class
+ * Rewritten to replace the indexing logic of registering products matching rule(s) conditions
+ * to the rule/product association table (magento_targetrule_product)
+ * by creating into ElasticSearch a percolator whose query corresponds to each rule conditions.
+ *
+ * @class   Smile
+ * @package Smile\ElasticsuiteTargetRule
+ * @author  Richard BAYET <richard.bayet@smile.fr>
+ */
 abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRule\AbstractAction
 {
     /**
@@ -69,10 +79,57 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
         $ruleCollection = $this->_ruleCollectionFactory->create();
 
         foreach ($ruleCollection as $rule) {
-            if (!$rule->getIsActive()) {
-                // continue;
-            }
             // $indexResource->saveProductIndex($rule);
+            $this->rulePercolatorIndexer->reindex($rule);
+        }
+    }
+
+    /**
+     * Reindex targetrules by product id
+     * Native method removes occurrences of the product from the association table,
+     * then :
+     * - populates the association table with the product according to the rules it matches
+     * - clear product cache accordingly
+     * As \Magento\TargetRule\Model\Rule::getMatchingProductIds() native behavior is not desirable
+     * and the method has not been rewritten yet, those second and third steps are not performed here.
+     *
+     * @param int|null $productId Product ID
+     * @return $this
+     */
+    protected function _reindexByProductId($productId = null)
+    {
+        $indexResource = $this->_resource;
+
+        // Remove old cache index data.
+        $this->_cleanIndex();
+
+        // Remove old matched product index.
+        $indexResource->removeProductIndex($productId);
+
+        return $this;
+    }
+
+    /**
+     * Reindex rule by ID
+     * Native method empties the rule records in the association table,
+     * then :
+     * - populates the association table again for the rule with the products that matches it
+     * - clear product cache accordingly
+     * As \Magento\TargetRule\Model\Rule::getMatchingProductIds() native behavior is not desirable
+     * and the method has not been rewritten yet, those second and third steps are not performed here.
+     *
+     * @param int $ruleId Rule ID
+     * @return void
+     */
+    protected function _reindexByRuleId($ruleId)
+    {
+        // Remove old cache index data.
+        $this->_cleanIndex();
+
+        /** @var \Magento\TargetRule\Model\Rule $rule */
+        $rule = $this->_ruleFactory->create();
+        $rule->load($ruleId);
+        if ($rule->getId()) {
             $this->rulePercolatorIndexer->reindex($rule);
         }
     }

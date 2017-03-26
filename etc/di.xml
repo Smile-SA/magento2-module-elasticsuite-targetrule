@@ -19,8 +19,16 @@
     <!-- rewrites for indexing -->
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Action\Full"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full" />
+    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row"
+                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row" />
+    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows"
+                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows" />
+    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row"
+                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row" />
+    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Rows"
+                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Rows" />
 
-    <!-- required because our ...\Indexer\TargetRule\Action\Full is not a subclass of ...\Indexer\TargetRule\\Action\Full -->
+    <!-- required because our ...\Indexer\TargetRule\[...]\Action\[...] classes are not subclasses of the native classes -->
     <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule"
                 type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule" />
 
