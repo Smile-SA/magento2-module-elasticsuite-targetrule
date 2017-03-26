@@ -195,8 +195,14 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
             $this->_visibility->getVisibleInCatalogIds()
         );
 
-        $collection->addQueryFilter($catalogRule->getSearchQuery())
-            ->setPageSize($limit);
+        $collection->addQueryFilter($catalogRule->getSearchQuery());
+
+        if ($excludeProductIds) {
+            // Warning: check support for 'nin' in \Smile\ElasticsuiteCore\Search\Request\Query\Filter\QueryBuilder .
+            $collection->addFieldToFilter('entity_id', ['nin' => $excludeProductIds]);
+        }
+
+        $collection->setPageSize($limit);
 
         return $collection->load()->getLoadedIds();
     }
