@@ -39,6 +39,14 @@
     <preference for="Magento\TargetRule\Model\ResourceModel\Index"
                 type="Smile\ElasticsuiteTargetRule\Model\ResourceModel\Index" />
 
+    <!-- plugins for indexing -->
+    <type name="Smile\ElasticsuiteCore\Index\IndexOperation">
+        <plugin name="smile_elasticsuite_target_rule_rules_full_reindex_on_product_new_index"
+                type="Smile\ElasticsuiteTargetRule\Plugin\Core\Index\IndexOperation"
+                sortOrder="10"
+                disabled="false" />
+    </type>
+
     <!-- plugins for querying -->
     <type name="\Magento\TargetRule\Model\ResourceModel\Rule\Collection">
         <plugin name="smile_elasticsuite_target_rule_collection_add_product_filter"
