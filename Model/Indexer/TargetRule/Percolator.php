@@ -25,7 +25,6 @@ use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
 use Smile\ElasticsuiteCatalogRule\Model\RuleFactory;
 use Smile\ElasticsuiteTargetRule\Helper\RuleConverter;
 use Psr\Log\LoggerInterface;
-use Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule;
 
 /**
  * Target rule percolator indexer
@@ -33,6 +32,7 @@ use Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule;
  * @category Smile
  * @package  Smile\ElasticsuiteTargetRule
  * @author   Richard BAYET <richard.bayet@smile.fr>
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Percolator
 {
@@ -113,6 +113,7 @@ class Percolator
      * @param RuleConverter           $ruleConverter   Target rule to Catalog rule converter helper
      * @param LoggerInterface         $logger          Logger
      * @param string                  $indexIdentifier ES index name/identifier (as defined in XMLs)
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         ClientFactoryInterface $clientFactory,
@@ -363,13 +364,12 @@ class Percolator
         $percolatorQuery = ['match_all' => []];
 
         if (!empty($filter)) {
+            $filterQuery = current($filter);
             if (count($filter) > 1) {
                 // Join the two queries in a "must" clause/query.
-                $filter = $this->queryFactory->create(QueryInterface::TYPE_BOOL, ['must' => $filter]);
-            } else {
-                $filter = current($filter);
+                $filterQuery = $this->queryFactory->create(QueryInterface::TYPE_BOOL, ['must' => $filter]);
             }
-            $percolatorQuery = $this->queryBuilder->buildQuery($filter);
+            $percolatorQuery = $this->queryBuilder->buildQuery($filterQuery);
         }
 
         $data = [

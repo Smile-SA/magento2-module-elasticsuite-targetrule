@@ -15,11 +15,9 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\ResourceModel;
 
-use Smile\ElasticsuiteCatalogRule\Model\RuleFactory as CatalogRuleFactory;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder as QueryBuilder;
 use Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\CollectionFactory as FulltextProductCollectionFactory;
 use Smile\ElasticsuiteTargetRule\Helper\RuleConverter;
-use Psr\Log\LoggerInterface;
 
 /**
  * Rewrite of TargetRule Product Index by Rule Product List Type Resource Model :
@@ -29,19 +27,10 @@ use Psr\Log\LoggerInterface;
  * @category Smile
  * @package  Smile\ElasticsuiteTargetRule
  * @author   Richard BAYET <richard.bayet@smile.fr>
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Product collection factory cannot be replaced through di
  */
 class Index extends \Magento\TargetRule\Model\ResourceModel\Index
 {
-    /**
-     * @var \Smile\ElasticsuiteCatalogRule\Model\RuleFactory
-     */
-    protected $catalogRuleFactory;
-
-    /**
-     * @var \Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder;
-     */
-    protected $queryBuilder;
-
     /**
      * @var \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\CollectionFactory
      */
@@ -51,11 +40,6 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @var \Smile\ElasticsuiteTargetRule\Helper\RuleConverter
      */
     private $ruleConverter;
-
-    /**
-     * @var \Psr\Log\LoggerInterface;
-     */
-    protected $logger;
 
     /**
      * Constructor
@@ -72,13 +56,10 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData              Customer segment helper
      * @param \Magento\TargetRule\Helper\Data                                $targetRuleData                   Target rule helper
      * @param \Magento\Framework\Registry                                    $coreRegistry                     Core registry
-     * @param \Smile\ElasticsuiteCatalogRule\Model\RuleFactory               $catalogRuleFactory               ES catalog rule factory
-     * @param QueryBuilder                                                   $queryBuilder                     ES query builder
      * @param FulltextProductCollectionFactory                               $fulltextProductCollectionFactory ES product collection factory
      * @param RuleConverter                                                  $ruleConverter                    Target rule to Catalog rule converter helper
-     * @param LoggerInterface                                                $logger                           Logger
      * @param string                                                         $connectionName                   Connection name
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
      */
     public function __construct(
         \Magento\Framework\Model\ResourceModel\Db\Context $context,
@@ -93,11 +74,8 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         \Magento\CustomerSegment\Helper\Data $customerSegmentData,
         \Magento\TargetRule\Helper\Data $targetRuleData,
         \Magento\Framework\Registry $coreRegistry,
-        CatalogRuleFactory $catalogRuleFactory,
-        QueryBuilder $queryBuilder,
         FulltextProductCollectionFactory $fulltextProductCollectionFactory,
         RuleConverter $ruleConverter,
-        LoggerInterface $logger,
         $connectionName = null
     ) {
         parent::__construct(
@@ -115,11 +93,8 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
             $coreRegistry,
             $connectionName
         );
-        $this->catalogRuleFactory   = $catalogRuleFactory;
-        $this->queryBuilder         = $queryBuilder;
         $this->fulltextProductCollectionFactory = $fulltextProductCollectionFactory;
-        $this->ruleConverter        = $ruleConverter;
-        $this->logger               = $logger;
+        $this->ruleConverter = $ruleConverter;
     }
 
     /**
@@ -132,6 +107,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param int                             $limit             Max number of product IDs to return
      * @param array                           $excludeProductIds IDs of products to ignore/not to return
      * @return array
+     * @SuppressWarnings(PHPMD.CamelCaseMethodName) inherited method
      */
     protected function _getProductIdsByRule($rule, $object, $limit, $excludeProductIds = [])
     {
@@ -143,12 +119,6 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         $catalogRule = $this->ruleConverter->getCatalogRuleFromActions($rule);
         // Provide target rule application context (inc. the current product) to the ES catalog rule.
         $catalogRule->setContext($object);
-
-        /*
-        $this->logger->debug('----- QB -----');
-        $this->logger->debug(json_encode($this->queryBuilder->buildQuery($catalogRule->getSearchQuery())));
-        $this->logger->debug('----- QB -----');
-        */
 
         /* @var $collection \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection */
         $collection = $this->fulltextProductCollectionFactory->create()->setStoreId(
@@ -171,4 +141,3 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         return $collection->load()->getLoadedIds();
     }
 }
-

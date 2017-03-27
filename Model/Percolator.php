@@ -61,8 +61,8 @@ class Percolator
      * @param ClientFactoryInterface  $clientFactory   ES client factory
      * @param StoreManagerInterface   $storeManager    Store manager
      * @param IndexOperationInterface $indexManager    ES index manager
-     *
-     * @param string                  $indexIdentifier
+     * @param LoggerInterface         $logger          Logger
+     * @param string                  $indexIdentifier ES index name/identifier (as defined in XMLs)
      */
     public function __construct(
         ClientFactoryInterface $clientFactory,
@@ -90,7 +90,7 @@ class Percolator
     {
         $ruleIds = array();
 
-        if (is_null($storeId)) {
+        if (null === $storeId) {
             $storeId = $this->storeManager->getStore()->getId();
         }
         /** @var \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index */

@@ -118,4 +118,14 @@ class RuleConverter extends AbstractHelper
 
         return $catalogRule;
     }
+
+    /**
+     * Return the helper logger
+     *
+     * @return \Psr\Log\LoggerInterface
+     */
+    public function getLogger()
+    {
+        $this->_logger;
+    }
 }

@@ -70,12 +70,12 @@ class Collection
     ) {
         $matchedRuleIds = $this->percolator->getMatchingRuleIds($productId);
 
+        $condition = ['in' => $matchedRuleIds];
         if (empty($matchedRuleIds)) {
             /* no matched rule, so force an empty collection */
-            $collection->addFieldToFilter('main_table.rule_id', ['eq' => 0]);
-        } else {
-            $collection->addFieldToFilter('main_table.rule_id', ['in' => $matchedRuleIds]);
+            $condition = ['eq' => 0];
         }
+        $collection->addFieldToFilter('main_table.rule_id', $condition);
 
         return $collection;
     }
