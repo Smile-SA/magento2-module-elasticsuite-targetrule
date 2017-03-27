@@ -23,7 +23,9 @@ use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder as 
 use Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory;
 use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
 use Smile\ElasticsuiteCatalogRule\Model\RuleFactory;
+use Smile\ElasticsuiteTargetRule\Helper\RuleConverter;
 use Psr\Log\LoggerInterface;
+use Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule;
 
 /**
  * Target rule percolator indexer
@@ -95,6 +97,11 @@ class Percolator
     private $queryFactory;
 
     /**
+     * @var \Smile\ElasticsuiteTargetRule\Helper\RuleConverter
+     */
+    private $ruleConverter;
+
+    /**
      * Percolator constructor.
      * @param ClientFactoryInterface  $clientFactory   ES client factory
      * @param StoreManagerInterface   $storeManager    Store manager
@@ -103,6 +110,7 @@ class Percolator
      * @param RuleFactory             $ruleFactory     ES catalog rule factory
      * @param QueryBuilder            $queryBuilder    ES query builder
      * @param QueryFactory            $queryFactory    ES query component factory
+     * @param RuleConverter           $ruleConverter   Target rule to Catalog rule converter helper
      * @param LoggerInterface         $logger          Logger
      * @param string                  $indexIdentifier ES index name/identifier (as defined in XMLs)
      */
@@ -114,6 +122,7 @@ class Percolator
         RuleFactory $ruleFactory,
         QueryBuilder $queryBuilder,
         QueryFactory $queryFactory,
+        RuleConverter $ruleConverter,
         LoggerInterface $logger,
         $indexIdentifier = 'catalog_product'
     ) {
@@ -124,6 +133,7 @@ class Percolator
         $this->ruleFactory      = $ruleFactory;
         $this->queryBuilder     = $queryBuilder;
         $this->queryFactory     = $queryFactory;
+        $this->ruleConverter    = $ruleConverter;
         $this->logger           = $logger;
         $this->indexIdentifier  = $indexIdentifier;
     }
@@ -332,41 +342,9 @@ class Percolator
     {
         $filter = [];
 
-        if ($rule->hasConditionsSerialized()) {
-            /*
-             * replace the Combine and Product condition models
-             * "Magento\TargetRule\Model\Rule\Condition\Combine"
-             *      -> "Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine"
-             * "Magento\TargetRule\Model\Rule\Condition\Product\Attributes" ->
-             *      -> "Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product"
-             *
-             * TODO : compute this only once per rule, whatever the number of Magento stores
-             * (store it at the $rule level ?)
-             */
-            $targetRuleConditions = unserialize($rule->getConditionsSerialized());
-
-            $targetRuleConditions = json_encode($targetRuleConditions);
-            $targetRuleConditions = str_replace(
-                [
-                    addslashes('Magento\TargetRule\Model\Rule\Condition\Combine'),
-                    addslashes('Magento\TargetRule\Model\Rule\Condition\Product\Attributes'),
-                ],
-                [
-                    addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine'),
-                    addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product'),
-                ],
-                $targetRuleConditions
-            );
-            $targetRuleConditions = json_decode($targetRuleConditions, true);
-
-            /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
-            $catalogRule = $this->ruleFactory->create();
-            $catalogRule->setStoreId($rule->getStoreId());
-
-            $catalogRule->getConditions()->loadArray($targetRuleConditions);
-
-            $filter[self::CONDITIONS_TYPE] = $catalogRule->getConditions()->getSearchQuery();
-        }
+        /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
+        $catalogRule = $this->ruleConverter->getCatalogRuleFromConditions($rule);
+        $filter[self::CONDITIONS_TYPE] = $catalogRule->getConditions()->getSearchQuery();
 
         return $filter;
     }

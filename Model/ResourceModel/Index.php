@@ -18,6 +18,7 @@ namespace Smile\ElasticsuiteTargetRule\Model\ResourceModel;
 use Smile\ElasticsuiteCatalogRule\Model\RuleFactory as CatalogRuleFactory;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder as QueryBuilder;
 use Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\CollectionFactory as FulltextProductCollectionFactory;
+use Smile\ElasticsuiteTargetRule\Helper\RuleConverter;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -47,6 +48,11 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
     protected $fulltextProductCollectionFactory;
 
     /**
+     * @var \Smile\ElasticsuiteTargetRule\Helper\RuleConverter
+     */
+    private $ruleConverter;
+
+    /**
      * @var \Psr\Log\LoggerInterface;
      */
     protected $logger;
@@ -69,6 +75,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Smile\ElasticsuiteCatalogRule\Model\RuleFactory               $catalogRuleFactory               ES catalog rule factory
      * @param QueryBuilder                                                   $queryBuilder                     ES query builder
      * @param FulltextProductCollectionFactory                               $fulltextProductCollectionFactory ES product collection factory
+     * @param RuleConverter                                                  $ruleConverter                    Target rule to Catalog rule converter helper
      * @param LoggerInterface                                                $logger                           Logger
      * @param string                                                         $connectionName                   Connection name
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -89,6 +96,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         CatalogRuleFactory $catalogRuleFactory,
         QueryBuilder $queryBuilder,
         FulltextProductCollectionFactory $fulltextProductCollectionFactory,
+        RuleConverter $ruleConverter,
         LoggerInterface $logger,
         $connectionName = null
     ) {
@@ -110,52 +118,8 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         $this->catalogRuleFactory   = $catalogRuleFactory;
         $this->queryBuilder         = $queryBuilder;
         $this->fulltextProductCollectionFactory = $fulltextProductCollectionFactory;
-        $this->logger = $logger;
-    }
-
-    /**
-     * @param \Magento\TargetRule\Model\Rule $rule Target rule
-     *
-     * @return \Smile\ElasticsuiteCatalogRule\Model\Rule
-     */
-    protected function getCatalogRuleFromTargetRule($rule)
-    {
-        /*
-         * Replace the Combine, Attributes and Special\Price and Product condition models
-         * "Magento\TargetRule\Model\Actions\Condition\Combine"
-         *      -> "Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine"
-         * "Magento\TargetRule\Model\Actions\Condition\Product\Attributes" ->
-         *      -> "Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Attributes"
-         * "Magento\TargetRule\Model\Actions\Condition\Product\Special\Price"
-         *      -> "Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special\Price"
-         *
-         * TODO : move the model names into class parameters that can be redefined in the XML config ?
-         *        or better, have a mapping in XML config ?
-         */
-        $targetRuleActions = unserialize($rule->getActionsSerialized());
-        $targetRuleActions = json_encode($targetRuleActions);
-        $targetRuleActions = str_replace(
-            [
-                addslashes('Magento\TargetRule\Model\Actions\Condition\Combine'),
-                addslashes('Magento\TargetRule\Model\Actions\Condition\Product\Attributes'),
-                addslashes('Magento\TargetRule\Model\Actions\Condition\Product\Special\Price'),
-            ],
-            [
-                addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine'),
-                addslashes('Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Attributes'),
-                addslashes('Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special\Price'),
-            ],
-            $targetRuleActions
-        );
-        $targetRuleActions = json_decode($targetRuleActions, true);
-
-        /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
-        $catalogRule = $this->catalogRuleFactory->create();
-        $catalogRule->setStoreId($rule->getStoreId());
-
-        $catalogRule->getConditions()->loadArray($targetRuleActions);
-
-        return $catalogRule;
+        $this->ruleConverter        = $ruleConverter;
+        $this->logger               = $logger;
     }
 
     /**
@@ -176,7 +140,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         // To propagate the store context to the catalogRule.
         $rule->setStoreId($object->getStoreId());
         /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
-        $catalogRule = $this->getCatalogRuleFromTargetRule($rule);
+        $catalogRule = $this->ruleConverter->getCatalogRuleFromActions($rule);
         // Provide target rule application context (inc. the current product) to the ES catalog rule.
         $catalogRule->setContext($object);
 
@@ -207,3 +171,4 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         return $collection->load()->getLoadedIds();
     }
 }
+
