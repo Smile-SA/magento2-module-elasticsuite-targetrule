@@ -47,6 +47,16 @@
                 disabled="false" />
     </type>
 
+    <!-- there might be a need for attr. simply having the flag "is_used_for_promo_rules" to 1
+         to have the same ES index mapping as attr. with "is_filterable/is_filterable_in_search" set to 1,
+         but so far it is not obvious -->
+    <type name="Smile\ElasticsuiteCatalog\Helper\Attribute">
+        <plugin name="smile_elasticsuitecatalog_helper_attribute_mapping_field_options"
+                type="Smile\ElasticsuiteTargetRule\Plugin\Catalog\Helper\Attribute"
+                sortOrder="10"
+                disabled="true" />
+    </type>
+
     <!-- plugins for querying -->
     <type name="\Magento\TargetRule\Model\ResourceModel\Rule\Collection">
         <plugin name="smile_elasticsuite_target_rule_collection_add_product_filter"
