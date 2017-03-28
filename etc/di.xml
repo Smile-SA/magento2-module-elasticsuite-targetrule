@@ -16,24 +16,75 @@
  */
  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- rewrites for indexing -->
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Action\Full"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Action\Full" />
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Row" />
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule\Action\Rows" />
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Row" />
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Rows"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product\Action\Rows" />
 
-    <!-- required because our ...\Indexer\TargetRule\[...]\Action\[...] classes are not subclasses of the native classes -->
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Product\Rule" />
+    <!-- ES index handler declaration -->
+    <virtualType name="targetRuleSearchIndexHandler" type="\Smile\ElasticsuiteCore\Indexer\GenericIndexerHandler">
+        <arguments>
+            <argument name="indexName" xsi:type="string">catalog_product</argument>
+            <argument name="typeName" xsi:type="string">.percolator</argument>
+        </arguments>
+    </virtualType>
 
-    <preference for="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product"
-                type="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Rule\Product" />
+    <!-- ES indexer declaration -->
+    <type name="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator">
+        <arguments>
+            <argument name="indexerHandler" xsi:type="object">targetRuleSearchIndexHandler</argument>
+        </arguments>
+    </type>
+
+    <!-- plugins for indexing -->
+
+    <!-- rule/product : rule changes event indexer -->
+    <type name="Magento\TargetRule\Model\Indexer\TargetRule\Rule\Product">
+        <plugin name="smile_elasticsuite_target_rule_native_rule_product_indexer_hijacker"
+                type="\Smile\ElasticsuiteTargetRule\Plugin\Indexer\TargetRule\Rule\Product"
+                sortOrder="10"
+                disabled="false" />
+    </type>
+    <!-- product/rule : product changes event indexer -->
+    <type name="Magento\TargetRule\Model\Indexer\TargetRule\Product\Rule">
+        <plugin name="smile_elasticsuite_target_rule_native_product_rule_indexer_hijacker"
+                type="\Smile\ElasticsuiteTargetRule\Plugin\Indexer\TargetRule\Product\Rule"
+                sortOrder="10"
+                disabled="false" />
+    </type>
+    <!-- Note: use the DI in your own module to change the cache cleaning behavior (alter argument "cleanRulesCache") -->
+    <type name="\Smile\ElasticsuiteTargetRule\Plugin\Indexer\TargetRule\Rule\Product">
+        <arguments>
+            <argument name="cleanRulesCache" xsi:type="boolean">true</argument>
+        </arguments>
+    </type>
+    <type name="\Smile\ElasticsuiteTargetRule\Plugin\Indexer\TargetRule\Product\Rule">
+        <arguments>
+            <argument name="cleanRulesCache" xsi:type="boolean">true</argument>
+        </arguments>
+    </type>
+
+    <!-- force fulltext/percolators reindex after catalog_product reindex -->
+    <type name="Magento\CatalogSearch\Model\Indexer\Fulltext">
+        <plugin name="smile_elasticsuite_target_rule_rules_fulltext_reindex_on_product_fulltext_reindex"
+                type="Smile\ElasticsuiteTargetRule\Plugin\CatalogSearch\Indexer\Fulltext"
+                sortOrder="10"
+                disabled="false" />
+    </type>
+
+    <!-- fix object fields ES mapping -->
+    <type name="Smile\ElasticsuiteCore\Index\Mapping\Field">
+        <plugin name="smile_elasticsuite_target_rule_alter_mapping_for_query_object_field"
+                type="Smile\ElasticsuiteTargetRule\Plugin\Core\Index\Mapping\Field"
+                sortOrder="10"
+                disabled="false" />
+    </type>
+
+    <!-- there might be a need for attr. simply having the flag "is_used_for_promo_rules" to 1
+         to have the same ES index mapping as attr. with "is_filterable/is_filterable_in_search" set to 1,
+         but so far it is not obvious (hence the plugin is disabled by default) -->
+    <type name="Smile\ElasticsuiteCatalog\Helper\Attribute">
+        <plugin name="smile_elasticsuitecatalog_helper_attribute_mapping_field_options"
+                type="Smile\ElasticsuiteTargetRule\Plugin\Catalog\Helper\Attribute"
+                sortOrder="10"
+                disabled="true" />
+    </type>
 
     <!-- rewrites for querying -->
     <preference for="Magento\TargetRule\Model\ResourceModel\Index"
@@ -43,24 +94,6 @@
         <arguments>
             <argument name="productCollectionFactory" xsi:type="object">Magento\CatalogSearch\Model\ResourceModel\Fulltext\CollectionFactory</argument>
         </arguments>
-    </type>
-
-    <!-- plugins for indexing -->
-    <type name="Smile\ElasticsuiteCore\Index\IndexOperation">
-        <plugin name="smile_elasticsuite_target_rule_rules_full_reindex_on_product_new_index"
-                type="Smile\ElasticsuiteTargetRule\Plugin\Core\Index\IndexOperation"
-                sortOrder="10"
-                disabled="false" />
-    </type>
-
-    <!-- there might be a need for attr. simply having the flag "is_used_for_promo_rules" to 1
-         to have the same ES index mapping as attr. with "is_filterable/is_filterable_in_search" set to 1,
-         but so far it is not obvious -->
-    <type name="Smile\ElasticsuiteCatalog\Helper\Attribute">
-        <plugin name="smile_elasticsuitecatalog_helper_attribute_mapping_field_options"
-                type="Smile\ElasticsuiteTargetRule\Plugin\Catalog\Helper\Attribute"
-                sortOrder="10"
-                disabled="true" />
     </type>
 
     <!-- plugins for querying -->

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Smile_ElasticsuiteTargetRule indexer loading configuration.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this module to newer
+ * versions in the future.
+ *
+ *
+ * @category  Smile
+ * @package   Smile\ElasticsuiteTargetRule
+ * @author    Richard BAYET <richard.bayet@smile.fr>
+ * @copyright 2017 Smile
+ * @license   Open Software License ("OSL") v. 3.0
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Indexer/etc/indexer.xsd">
+    <!-- Declaring a standalone indexer is actually not required
+         because of the plugins intercepting the native rule-product and product-rule target rules indexers -->
+    <indexer id="elasticsuite_targetrule_percolators" view_id="elasticsuite_targetrule_percolators" class="Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator">
+        <title translate="true">Elasticsuite Target Rule Indexing</title>
+        <description translate="true">Reindex target rules conditions as percolators.</description>
+    </indexer>
+</config>

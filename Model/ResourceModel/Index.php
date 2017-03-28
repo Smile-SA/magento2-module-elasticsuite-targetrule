@@ -43,7 +43,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                Target rule index pool
      * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                     Target rule resource model
      * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory Customer segment factory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Catalog product collection factory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Product collection factory
      * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager             Store manager
      * @param \Magento\Catalog\Model\Product\Visibility                      $visibility               Visibility model
      * @param \Magento\CustomerSegment\Model\Customer                        $customer                 Customer model
@@ -51,7 +51,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData      Customer segment helper
      * @param \Magento\TargetRule\Helper\Data                                $targetRuleData           Target rule helper
      * @param \Magento\Framework\Registry                                    $coreRegistry             Core registry
-     * @param RuleConverter                                                  $ruleConverter            Target rule to Catalog rule converter helper
+     * @param RuleConverter                                                  $ruleConverter            Target to Catalog rule converter
      * @param string                                                         $connectionName           Connection name
      * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
      */
