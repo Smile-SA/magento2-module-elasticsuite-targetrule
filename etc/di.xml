@@ -39,6 +39,12 @@
     <preference for="Magento\TargetRule\Model\ResourceModel\Index"
                 type="Smile\ElasticsuiteTargetRule\Model\ResourceModel\Index" />
 
+    <type name="Smile\ElasticsuiteTargetRule\Model\ResourceModel\Index">
+        <arguments>
+            <argument name="productCollectionFactory" xsi:type="object">Magento\CatalogSearch\Model\ResourceModel\Fulltext\CollectionFactory</argument>
+        </arguments>
+    </type>
+
     <!-- plugins for indexing -->
     <type name="Smile\ElasticsuiteCore\Index\IndexOperation">
         <plugin name="smile_elasticsuite_target_rule_rules_full_reindex_on_product_new_index"

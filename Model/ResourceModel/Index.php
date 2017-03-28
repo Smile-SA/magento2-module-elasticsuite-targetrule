@@ -27,15 +27,10 @@ use Smile\ElasticsuiteTargetRule\Helper\RuleConverter;
  * @category Smile
  * @package  Smile\ElasticsuiteTargetRule
  * @author   Richard BAYET <richard.bayet@smile.fr>
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Product collection factory cannot be replaced through di
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Inherited excessive coupling (single object added in constructor)
  */
 class Index extends \Magento\TargetRule\Model\ResourceModel\Index
 {
-    /**
-     * @var \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\CollectionFactory
-     */
-    protected $fulltextProductCollectionFactory;
-
     /**
      * @var \Smile\ElasticsuiteTargetRule\Helper\RuleConverter
      */
@@ -44,21 +39,20 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
     /**
      * Constructor
      *
-     * @param \Magento\Framework\Model\ResourceModel\Db\Context              $context                          Context
-     * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                        Target rule index pool
-     * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                             Target rule resource model
-     * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory         Customer segment factory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory         Catalog product collection factory
-     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager                     Store manager
-     * @param \Magento\Catalog\Model\Product\Visibility                      $visibility                       Visibility model
-     * @param \Magento\CustomerSegment\Model\Customer                        $customer                         Customer model
-     * @param \Magento\Customer\Model\Session                                $session                          Customer session
-     * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData              Customer segment helper
-     * @param \Magento\TargetRule\Helper\Data                                $targetRuleData                   Target rule helper
-     * @param \Magento\Framework\Registry                                    $coreRegistry                     Core registry
-     * @param FulltextProductCollectionFactory                               $fulltextProductCollectionFactory ES product collection factory
-     * @param RuleConverter                                                  $ruleConverter                    Target rule to Catalog rule converter helper
-     * @param string                                                         $connectionName                   Connection name
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context              $context                  Context
+     * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                Target rule index pool
+     * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                     Target rule resource model
+     * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory Customer segment factory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Catalog product collection factory
+     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager             Store manager
+     * @param \Magento\Catalog\Model\Product\Visibility                      $visibility               Visibility model
+     * @param \Magento\CustomerSegment\Model\Customer                        $customer                 Customer model
+     * @param \Magento\Customer\Model\Session                                $session                  Customer session
+     * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData      Customer segment helper
+     * @param \Magento\TargetRule\Helper\Data                                $targetRuleData           Target rule helper
+     * @param \Magento\Framework\Registry                                    $coreRegistry             Core registry
+     * @param RuleConverter                                                  $ruleConverter            Target rule to Catalog rule converter helper
+     * @param string                                                         $connectionName           Connection name
      * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
      */
     public function __construct(
@@ -74,7 +68,6 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         \Magento\CustomerSegment\Helper\Data $customerSegmentData,
         \Magento\TargetRule\Helper\Data $targetRuleData,
         \Magento\Framework\Registry $coreRegistry,
-        FulltextProductCollectionFactory $fulltextProductCollectionFactory,
         RuleConverter $ruleConverter,
         $connectionName = null
     ) {
@@ -93,7 +86,6 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
             $coreRegistry,
             $connectionName
         );
-        $this->fulltextProductCollectionFactory = $fulltextProductCollectionFactory;
         $this->ruleConverter = $ruleConverter;
     }
 
@@ -120,8 +112,8 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         // Provide target rule application context (inc. the current product) to the ES catalog rule.
         $catalogRule->setContext($object);
 
-        /* @var $collection \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection */
-        $collection = $this->fulltextProductCollectionFactory->create()->setStoreId(
+        /** @var \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection $collection */
+        $collection = $this->_productCollectionFactory->create()->setStoreId(
             $object->getStoreId()
         )->addPriceData(
             $object->getCustomerGroupId()
