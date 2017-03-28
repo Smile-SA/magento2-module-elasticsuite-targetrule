@@ -67,6 +67,7 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
      * Reindex all
      *
      * @return void
+     * @SuppressWarnings(PHPMD.CamelCaseMethodName) inherited method
      */
     protected function _reindexAll()
     {
@@ -95,6 +96,7 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
      *
      * @param int|null $productId Product ID
      * @return $this
+     * @SuppressWarnings(PHPMD.CamelCaseMethodName) inherited method
      */
     protected function _reindexByProductId($productId = null)
     {
@@ -120,6 +122,7 @@ abstract class AbstractAction extends \Magento\TargetRule\Model\Indexer\TargetRu
      *
      * @param int $ruleId Rule ID
      * @return void
+     * @SuppressWarnings(PHPMD.CamelCaseMethodName) inherited method
      */
     protected function _reindexByRuleId($ruleId)
     {

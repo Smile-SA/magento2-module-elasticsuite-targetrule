@@ -53,4 +53,3 @@ class Attribute
         return $options;
     }
 }
-

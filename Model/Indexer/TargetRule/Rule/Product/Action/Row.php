@@ -48,4 +48,3 @@ class Row extends AbstractAction
         }
     }
 }
-

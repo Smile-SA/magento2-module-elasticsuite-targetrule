@@ -15,10 +15,9 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\ResourceModel;
 
-use Smile\ElasticsuiteCatalogRule\Model\RuleFactory as CatalogRuleFactory;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder as QueryBuilder;
 use Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\CollectionFactory as FulltextProductCollectionFactory;
-use Psr\Log\LoggerInterface;
+use Smile\ElasticsuiteTargetRule\Helper\RuleConverter;
 
 /**
  * Rewrite of TargetRule Product Index by Rule Product List Type Resource Model :
@@ -28,50 +27,33 @@ use Psr\Log\LoggerInterface;
  * @category Smile
  * @package  Smile\ElasticsuiteTargetRule
  * @author   Richard BAYET <richard.bayet@smile.fr>
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) Inherited excessive coupling (single object added in constructor)
  */
 class Index extends \Magento\TargetRule\Model\ResourceModel\Index
 {
     /**
-     * @var \Smile\ElasticsuiteCatalogRule\Model\RuleFactory
+     * @var \Smile\ElasticsuiteTargetRule\Helper\RuleConverter
      */
-    protected $catalogRuleFactory;
-
-    /**
-     * @var \Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Request\Query\Builder;
-     */
-    protected $queryBuilder;
-
-    /**
-     * @var \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\CollectionFactory
-     */
-    protected $fulltextProductCollectionFactory;
-
-    /**
-     * @var \Psr\Log\LoggerInterface;
-     */
-    protected $logger;
+    private $ruleConverter;
 
     /**
      * Constructor
      *
-     * @param \Magento\Framework\Model\ResourceModel\Db\Context              $context                          Context
-     * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                        Target rule index pool
-     * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                             Target rule resource model
-     * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory         Customer segment factory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory         Catalog product collection factory
-     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager                     Store manager
-     * @param \Magento\Catalog\Model\Product\Visibility                      $visibility                       Visibility model
-     * @param \Magento\CustomerSegment\Model\Customer                        $customer                         Customer model
-     * @param \Magento\Customer\Model\Session                                $session                          Customer session
-     * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData              Customer segment helper
-     * @param \Magento\TargetRule\Helper\Data                                $targetRuleData                   Target rule helper
-     * @param \Magento\Framework\Registry                                    $coreRegistry                     Core registry
-     * @param \Smile\ElasticsuiteCatalogRule\Model\RuleFactory               $catalogRuleFactory               ES catalog rule factory
-     * @param QueryBuilder                                                   $queryBuilder                     ES query builder
-     * @param FulltextProductCollectionFactory                               $fulltextProductCollectionFactory ES product collection factory
-     * @param LoggerInterface                                                $logger                           Logger
-     * @param string                                                         $connectionName                   Connection name
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context              $context                  Context
+     * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                Target rule index pool
+     * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                     Target rule resource model
+     * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory Customer segment factory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Catalog product collection factory
+     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager             Store manager
+     * @param \Magento\Catalog\Model\Product\Visibility                      $visibility               Visibility model
+     * @param \Magento\CustomerSegment\Model\Customer                        $customer                 Customer model
+     * @param \Magento\Customer\Model\Session                                $session                  Customer session
+     * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData      Customer segment helper
+     * @param \Magento\TargetRule\Helper\Data                                $targetRuleData           Target rule helper
+     * @param \Magento\Framework\Registry                                    $coreRegistry             Core registry
+     * @param RuleConverter                                                  $ruleConverter            Target rule to Catalog rule converter helper
+     * @param string                                                         $connectionName           Connection name
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
      */
     public function __construct(
         \Magento\Framework\Model\ResourceModel\Db\Context $context,
@@ -86,10 +68,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         \Magento\CustomerSegment\Helper\Data $customerSegmentData,
         \Magento\TargetRule\Helper\Data $targetRuleData,
         \Magento\Framework\Registry $coreRegistry,
-        CatalogRuleFactory $catalogRuleFactory,
-        QueryBuilder $queryBuilder,
-        FulltextProductCollectionFactory $fulltextProductCollectionFactory,
-        LoggerInterface $logger,
+        RuleConverter $ruleConverter,
         $connectionName = null
     ) {
         parent::__construct(
@@ -107,55 +86,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
             $coreRegistry,
             $connectionName
         );
-        $this->catalogRuleFactory   = $catalogRuleFactory;
-        $this->queryBuilder         = $queryBuilder;
-        $this->fulltextProductCollectionFactory = $fulltextProductCollectionFactory;
-        $this->logger = $logger;
-    }
-
-    /**
-     * @param \Magento\TargetRule\Model\Rule $rule Target rule
-     *
-     * @return \Smile\ElasticsuiteCatalogRule\Model\Rule
-     */
-    protected function getCatalogRuleFromTargetRule($rule)
-    {
-        /*
-         * Replace the Combine, Attributes and Special\Price and Product condition models
-         * "Magento\TargetRule\Model\Actions\Condition\Combine"
-         *      -> "Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine"
-         * "Magento\TargetRule\Model\Actions\Condition\Product\Attributes" ->
-         *      -> "Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Attributes"
-         * "Magento\TargetRule\Model\Actions\Condition\Product\Special\Price"
-         *      -> "Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special\Price"
-         *
-         * TODO : move the model names into class parameters that can be redefined in the XML config ?
-         *        or better, have a mapping in XML config ?
-         */
-        $targetRuleActions = unserialize($rule->getActionsSerialized());
-        $targetRuleActions = json_encode($targetRuleActions);
-        $targetRuleActions = str_replace(
-            [
-                addslashes('Magento\TargetRule\Model\Actions\Condition\Combine'),
-                addslashes('Magento\TargetRule\Model\Actions\Condition\Product\Attributes'),
-                addslashes('Magento\TargetRule\Model\Actions\Condition\Product\Special\Price'),
-            ],
-            [
-                addslashes('Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine'),
-                addslashes('Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Attributes'),
-                addslashes('Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special\Price'),
-            ],
-            $targetRuleActions
-        );
-        $targetRuleActions = json_decode($targetRuleActions, true);
-
-        /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
-        $catalogRule = $this->catalogRuleFactory->create();
-        $catalogRule->setStoreId($rule->getStoreId());
-
-        $catalogRule->getConditions()->loadArray($targetRuleActions);
-
-        return $catalogRule;
+        $this->ruleConverter = $ruleConverter;
     }
 
     /**
@@ -168,6 +99,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param int                             $limit             Max number of product IDs to return
      * @param array                           $excludeProductIds IDs of products to ignore/not to return
      * @return array
+     * @SuppressWarnings(PHPMD.CamelCaseMethodName) inherited method
      */
     protected function _getProductIdsByRule($rule, $object, $limit, $excludeProductIds = [])
     {
@@ -176,18 +108,12 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         // To propagate the store context to the catalogRule.
         $rule->setStoreId($object->getStoreId());
         /** @var \Smile\ElasticsuiteCatalogRule\Model\Rule $catalogRule */
-        $catalogRule = $this->getCatalogRuleFromTargetRule($rule);
+        $catalogRule = $this->ruleConverter->getCatalogRuleFromActions($rule);
         // Provide target rule application context (inc. the current product) to the ES catalog rule.
         $catalogRule->setContext($object);
 
-        /*
-        $this->logger->debug('----- QB -----');
-        $this->logger->debug(json_encode($this->queryBuilder->buildQuery($catalogRule->getSearchQuery())));
-        $this->logger->debug('----- QB -----');
-        */
-
-        /* @var $collection \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection */
-        $collection = $this->fulltextProductCollectionFactory->create()->setStoreId(
+        /** @var \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection $collection */
+        $collection = $this->_productCollectionFactory->create()->setStoreId(
             $object->getStoreId()
         )->addPriceData(
             $object->getCustomerGroupId()

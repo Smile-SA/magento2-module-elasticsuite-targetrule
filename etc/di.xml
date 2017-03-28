@@ -39,6 +39,12 @@
     <preference for="Magento\TargetRule\Model\ResourceModel\Index"
                 type="Smile\ElasticsuiteTargetRule\Model\ResourceModel\Index" />
 
+    <type name="Smile\ElasticsuiteTargetRule\Model\ResourceModel\Index">
+        <arguments>
+            <argument name="productCollectionFactory" xsi:type="object">Magento\CatalogSearch\Model\ResourceModel\Fulltext\CollectionFactory</argument>
+        </arguments>
+    </type>
+
     <!-- plugins for indexing -->
     <type name="Smile\ElasticsuiteCore\Index\IndexOperation">
         <plugin name="smile_elasticsuite_target_rule_rules_full_reindex_on_product_new_index"
@@ -64,4 +70,20 @@
                 sortOrder="10"
                 disabled="false" />
     </type>
+
+    <!-- TargetRule actions/conditions rules converter helper configuration -->
+    <type name="Smile\ElasticsuiteTargetRule\Helper\RuleConverter">
+        <arguments>
+            <argument name="conditionsMapping" xsi:type="array">
+                <item name="Magento\TargetRule\Model\Rule\Condition\Combine" xsi:type="string">Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine</item>
+                <item name="Magento\TargetRule\Model\Rule\Condition\Product\Attributes" xsi:type="string">Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Product</item>
+            </argument>
+            <argument name="actionsMapping" xsi:type="array">
+                <item name="Magento\TargetRule\Model\Actions\Condition\Combine" xsi:type="string">Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Combine</item>
+                <item name="Magento\TargetRule\Model\Actions\Condition\Product\Attributes" xsi:type="string">Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Attributes</item>
+                <item name="Magento\TargetRule\Model\Actions\Condition\Product\Special\Price" xsi:type="string">Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special\Price</item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>

@@ -78,4 +78,3 @@ class IndexOperation
         return $index;
     }
 }
-

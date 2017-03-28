@@ -71,10 +71,11 @@ class Attributes extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition
                 $value = implode(',', $value);
             }
             $this->setValue($value);
-        } else {
-            // Implicit else : $this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_CONSTANT
-            // nothing to do ...
         }
+        /*
+         * Implicit else : $this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_CONSTANT
+         * => Nothing to do.
+         */
 
         return parent::getSearchQuery($excludedCategories);
     }
