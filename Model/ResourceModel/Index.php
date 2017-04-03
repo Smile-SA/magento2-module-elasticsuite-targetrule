@@ -43,7 +43,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                Target rule index pool
      * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                     Target rule resource model
      * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory Customer segment factory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Catalog product collection factory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Product collection factory
      * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager             Store manager
      * @param \Magento\Catalog\Model\Product\Visibility                      $visibility               Visibility model
      * @param \Magento\CustomerSegment\Model\Customer                        $customer                 Customer model
@@ -51,7 +51,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData      Customer segment helper
      * @param \Magento\TargetRule\Helper\Data                                $targetRuleData           Target rule helper
      * @param \Magento\Framework\Registry                                    $coreRegistry             Core registry
-     * @param RuleConverter                                                  $ruleConverter            Target rule to Catalog rule converter helper
+     * @param RuleConverter                                                  $ruleConverter            Target to Catalog rule converter
      * @param string                                                         $connectionName           Connection name
      * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
      */
@@ -124,12 +124,44 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         $collection->addQueryFilter($catalogRule->getSearchQuery());
 
         if ($excludeProductIds) {
-            // Warning: check support for 'nin' in \Smile\ElasticsuiteCore\Search\Request\Query\Filter\QueryBuilder .
-            $collection->addFieldToFilter('entity_id', ['nin' => $excludeProductIds]);
+            $collection = $this->excludeProductIds($collection, $excludeProductIds);
         }
 
         $collection->setPageSize($limit);
 
         return $collection->load()->getLoadedIds();
+    }
+
+    /**
+     * Exclude product Ids from collection
+     * @SuppressWarnings(PHPMD.StaticAccess) To remove when the call to ObjectManager will be refactored.
+     *
+     * @param \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection $collection        Product Collection
+     * @param array                                                                      $excludeProductIds Product Ids to exclude
+     *
+     * @return mixed
+     */
+    private function excludeProductIds($collection, $excludeProductIds)
+    {
+        // Uncomment line below when PR https://github.com/Smile-SA/elasticsuite/pull/371 will be merged into Elasticsuite.
+        // $collection->addFieldToFilter('entity_id', ['nin' => $excludeProductIds]);
+        // Remove following code when uncommenting line above.
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var \Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory $queryFactory */
+        $queryFactory  = $objectManager->get('\Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory');
+
+        $query = $queryFactory->create(
+            \Smile\ElasticsuiteCore\Search\Request\QueryInterface::TYPE_TERMS,
+            ['field' => 'entity_id', 'values' => $excludeProductIds]
+        );
+
+        $query = $queryFactory->create(
+            \Smile\ElasticsuiteCore\Search\Request\QueryInterface::TYPE_NOT,
+            ['query' => $query]
+        );
+
+        $collection->addQueryFilter($query);
+
+        return $collection;
     }
 }

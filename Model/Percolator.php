@@ -18,7 +18,7 @@ namespace Smile\ElasticsuiteTargetRule\Model;
 use \Smile\ElasticsuiteCore\Api\Client\ClientFactoryInterface;
 use \Magento\Store\Model\StoreManagerInterface;
 use \Smile\ElasticsuiteCore\Api\Index\IndexOperationInterface;
-use \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator as PercolatorIndexer;
+use \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator\Datasource\PercolatorData;
 use \Psr\Log\LoggerInterface;
 
 /**
@@ -105,7 +105,7 @@ class Percolator
                     'body'  => array(
                         'filter' => array(
                             'and' => array(
-                                array('term' => array('percolator_type' => PercolatorIndexer::PERCOLATOR_TYPE)),
+                                array('term' => array('percolator_type' => PercolatorData::PERCOLATOR_TYPE)),
                                 // Also done in \Magento\TargetRule\Model\Index::getRuleCollection
                                 // but limits the amount of requests/data exchanged.
                                 array('term' => array('is_active'       => true)),
