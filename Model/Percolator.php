@@ -86,7 +86,7 @@ class Percolator
      *
      * @return int[]
      */
-    public function getMatchingRuleIds(int $productId, int $storeId = null)
+    public function getMatchingRuleIds($productId, $storeId = null)
     {
         $ruleIds = array();
 
