@@ -13,7 +13,7 @@
         "php": "~5.5.0|~5.6.0|~7.0.0",
         "magento/framework": "*",
         "magento/magento-composer-installer": "*",
-        "magento/module-target-rule": "100.1.*",
+        "magento/module-target-rule": "100.1.*|100.2.*|101.0.*",
         "smile/elasticsuite" : "^2.3.4"
     },
     "require-dev": {

@@ -42,21 +42,32 @@ class RuleConverter extends AbstractHelper
      * @var array
      */
     protected $actionsMapping;
+    /**
+     * @var VersionChecker
+     */
+    private $versionChecker;
 
     /**
      * Constructor.
      *
-     * @param Context     $context           Helper context.
-     * @param RuleFactory $ruleFactory       ES catalog rule factory
-     * @param array       $conditionsMapping Target rule condition to catalog rule condition classes mapping
-     * @param array       $actionsMapping    Target rule action to catalog rule condition classes mapping
+     * @param Context $context Helper context.
+     * @param RuleFactory $ruleFactory ES catalog rule factory
+     * @param array $conditionsMapping Target rule condition to catalog rule condition classes mapping
+     * @param array $actionsMapping Target rule action to catalog rule condition classes mapping
      */
-    public function __construct(Context $context, RuleFactory $ruleFactory, $conditionsMapping = [], $actionsMapping = [])
+    public function __construct(
+        Context $context,
+        RuleFactory $ruleFactory,
+        \Smile\ElasticsuiteTargetRule\Helper\VersionChecker $versionChecker,
+        $conditionsMapping = [],
+        $actionsMapping = []
+    )
     {
         parent::__construct($context);
-        $this->ruleFactory          = $ruleFactory;
-        $this->conditionsMapping    = $conditionsMapping;
-        $this->actionsMapping       = $actionsMapping;
+        $this->ruleFactory = $ruleFactory;
+        $this->conditionsMapping = $conditionsMapping;
+        $this->actionsMapping = $actionsMapping;
+        $this->versionChecker = $versionChecker;
     }
 
     /**
@@ -73,15 +84,7 @@ class RuleConverter extends AbstractHelper
         $catalogRule->setStoreId($rule->getStoreId());
 
         if ($rule->hasConditionsSerialized()) {
-            $targetRuleConditions = unserialize($rule->getConditionsSerialized());
-            $targetRuleConditions = json_encode($targetRuleConditions);
-            $targetRuleConditions = str_replace(
-                array_map('addslashes', array_keys($this->conditionsMapping)),
-                array_map('addslashes', array_values($this->conditionsMapping)),
-                $targetRuleConditions
-            );
-            $targetRuleConditions = json_decode($targetRuleConditions, true);
-
+            $targetRuleConditions = $this->versionChecker->unserializeField($rule->getConditionsSerialized(), $this->actionsMapping);
             $catalogRule->getConditions()->loadArray($targetRuleConditions);
         }
 
@@ -104,15 +107,7 @@ class RuleConverter extends AbstractHelper
         $catalogRule->setStoreId($rule->getStoreId());
 
         if ($rule->hasActionsSerialized()) {
-            $targetRuleActions = unserialize($rule->getActionsSerialized());
-            $targetRuleActions = json_encode($targetRuleActions);
-            $targetRuleActions = str_replace(
-                array_map('addslashes', array_keys($this->actionsMapping)),
-                array_map('addslashes', array_values($this->actionsMapping)),
-                $targetRuleActions
-            );
-            $targetRuleActions = json_decode($targetRuleActions, true);
-
+            $targetRuleActions = $this->versionChecker->unserializeField($rule->getActionsSerialized(), $this->actionsMapping);
             $catalogRule->getConditions()->loadArray($targetRuleActions);
         }
 
