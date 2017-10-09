@@ -18,6 +18,17 @@ We overcome this problem by [percolating](https://www.elastic.co/guide/en/elasti
 
 Once the rules matching a product are retrieved by the Percolator, we process converting on the fly the TargetRule conditions to an Elasticsearch query, allowing us to match quickly the products that can be displayed by the rule, without even using the Database for complex filtering.
 
+### Compatibility Matrix
+
+Since Magento did change the way they store rules (from serialized string to json) between 2.1 and 2.2, please ensure to use the proper version of the module for your Magento version :
+
+Magento Version         | Version of this module to use
+------------------------|------------------------------------------------------------------------
+Magento 2.0.* EE        | NOT SUPPORTED
+Magento 2.1.* EE        | [Latest 1.1.x release](https://github.com/Smile-SA/magento2-module-elasticsuite-targetrule/releases/tag/1.1.0)
+Magento 2.2.* EE        | [Latest 1.2.x release](https://github.com/Smile-SA/magento2-module-elasticsuite-targetrule/releases/tag/1.2.0)
+
+
 ### Requirements
 
 The module requires :
