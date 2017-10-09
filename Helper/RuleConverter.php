@@ -73,8 +73,7 @@ class RuleConverter extends AbstractHelper
         $catalogRule->setStoreId($rule->getStoreId());
 
         if ($rule->hasConditionsSerialized()) {
-            $targetRuleConditions = unserialize($rule->getConditionsSerialized());
-            $targetRuleConditions = json_encode($targetRuleConditions);
+            $targetRuleConditions = $rule->getConditionsSerialized();
             $targetRuleConditions = str_replace(
                 array_map('addslashes', array_keys($this->conditionsMapping)),
                 array_map('addslashes', array_values($this->conditionsMapping)),
@@ -104,8 +103,7 @@ class RuleConverter extends AbstractHelper
         $catalogRule->setStoreId($rule->getStoreId());
 
         if ($rule->hasActionsSerialized()) {
-            $targetRuleActions = unserialize($rule->getActionsSerialized());
-            $targetRuleActions = json_encode($targetRuleActions);
+            $targetRuleActions = $rule->getActionsSerialized();
             $targetRuleActions = str_replace(
                 array_map('addslashes', array_keys($this->actionsMapping)),
                 array_map('addslashes', array_values($this->actionsMapping)),
