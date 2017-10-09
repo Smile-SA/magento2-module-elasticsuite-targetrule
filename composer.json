@@ -10,7 +10,6 @@
         }
     ],
     "require": {
-        "php": "~7.0.0",
         "magento/framework": ">=100.2.0",
         "magento/magento-composer-installer": "*",
         "magento/module-target-rule": ">=100.2.0",
