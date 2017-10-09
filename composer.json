@@ -10,14 +10,14 @@
         }
     ],
     "require": {
-        "php": "~5.5.0|~5.6.0|~7.0.0",
-        "magento/framework": "*",
+        "php": "~7.0.0",
+        "magento/framework": ">=100.2.0",
         "magento/magento-composer-installer": "*",
-        "magento/module-target-rule": "100.1.*",
-        "smile/elasticsuite" : "^2.3.4"
+        "magento/module-target-rule": ">=100.2.0",
+        "smile/elasticsuite" : "^2.3.8"
     },
     "require-dev": {
-        "smile/magento2-smilelab-quality-suite": "1.0.0"
+        "smile/magento2-smilelab-quality-suite": "^1.0.4"
     },
     "license": "OSL-3.0",
     "authors": [
