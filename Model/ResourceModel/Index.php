@@ -36,25 +36,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      */
     private $ruleConverter;
 
-    /**
-     * Constructor
-     *
-     * @param \Magento\Framework\Model\ResourceModel\Db\Context              $context                  Context
-     * @param \Magento\TargetRule\Model\ResourceModel\IndexPool              $indexPool                Target rule index pool
-     * @param \Magento\TargetRule\Model\ResourceModel\Rule                   $rule                     Target rule resource model
-     * @param \Magento\CustomerSegment\Model\ResourceModel\Segment           $segmentCollectionFactory Customer segment factory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory Product collection factory
-     * @param \Magento\Store\Model\StoreManagerInterface                     $storeManager             Store manager
-     * @param \Magento\Catalog\Model\Product\Visibility                      $visibility               Visibility model
-     * @param \Magento\CustomerSegment\Model\Customer                        $customer                 Customer model
-     * @param \Magento\Customer\Model\Session                                $session                  Customer session
-     * @param \Magento\CustomerSegment\Helper\Data                           $customerSegmentData      Customer segment helper
-     * @param \Magento\TargetRule\Helper\Data                                $targetRuleData           Target rule helper
-     * @param \Magento\Framework\Registry                                    $coreRegistry             Core registry
-     * @param RuleConverter                                                  $ruleConverter            Target to Catalog rule converter
-     * @param string                                                         $connectionName           Connection name
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
-     */
+
     public function __construct(
         \Magento\Framework\Model\ResourceModel\Db\Context $context,
         \Magento\TargetRule\Model\ResourceModel\IndexPool $indexPool,
@@ -68,9 +50,10 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         \Magento\CustomerSegment\Helper\Data $customerSegmentData,
         \Magento\TargetRule\Helper\Data $targetRuleData,
         \Magento\Framework\Registry $coreRegistry,
+        \Magento\CatalogInventory\Helper\Stock $stockHelper = null,
         RuleConverter $ruleConverter,
-        $connectionName = null
-    ) {
+        $connectionName = null)
+    {
         parent::__construct(
             $context,
             $indexPool,
@@ -84,6 +67,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
             $customerSegmentData,
             $targetRuleData,
             $coreRegistry,
+            $stockHelper,
             $connectionName
         );
         $this->ruleConverter = $ruleConverter;
@@ -94,10 +78,10 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * Converts the action conditions into an ElasticSuite catalog rule
      * to fetch the product IDs from ElasticSearch.
      *
-     * @param \Magento\TargetRule\Model\Rule  $rule              Target rule
-     * @param \Magento\TargetRule\Model\Index $object            Target rules index accessor (also contains the contextual Product)
-     * @param int                             $limit             Max number of product IDs to return
-     * @param array                           $excludeProductIds IDs of products to ignore/not to return
+     * @param \Magento\TargetRule\Model\Rule $rule Target rule
+     * @param \Magento\TargetRule\Model\Index $object Target rules index accessor (also contains the contextual Product)
+     * @param int $limit Max number of product IDs to return
+     * @param array $excludeProductIds IDs of products to ignore/not to return
      * @return array
      * @SuppressWarnings(PHPMD.CamelCaseMethodName) inherited method
      */
@@ -136,8 +120,8 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * Exclude product Ids from collection
      * @SuppressWarnings(PHPMD.StaticAccess) To remove when the call to ObjectManager will be refactored.
      *
-     * @param \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection $collection        Product Collection
-     * @param array                                                                      $excludeProductIds Product Ids to exclude
+     * @param \Smile\ElasticsuiteCatalog\Model\ResourceModel\Product\Fulltext\Collection $collection Product Collection
+     * @param array $excludeProductIds Product Ids to exclude
      *
      * @return mixed
      */
@@ -148,7 +132,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         // Remove following code when uncommenting line above.
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         /** @var \Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory $queryFactory */
-        $queryFactory  = $objectManager->get('\Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory');
+        $queryFactory = $objectManager->get('\Smile\ElasticsuiteCore\Search\Request\Query\QueryFactory');
 
         $query = $queryFactory->create(
             \Smile\ElasticsuiteCore\Search\Request\QueryInterface::TYPE_TERMS,
