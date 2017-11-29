@@ -52,6 +52,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
      * @param \Magento\TargetRule\Helper\Data                                $targetRuleData           Target rule helper
      * @param \Magento\Framework\Registry                                    $coreRegistry             Core registry
      * @param RuleConverter                                                  $ruleConverter            Target to Catalog rule converter
+     * @param \Magento\CatalogInventory\Helper\Stock                         $stockHelper              Stock Helper
      * @param string                                                         $connectionName           Connection name
      * @SuppressWarnings(PHPMD.ExcessiveParameterList) inherited method
      */
@@ -69,6 +70,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
         \Magento\TargetRule\Helper\Data $targetRuleData,
         \Magento\Framework\Registry $coreRegistry,
         RuleConverter $ruleConverter,
+        \Magento\CatalogInventory\Helper\Stock $stockHelper = null,
         $connectionName = null
     ) {
         parent::__construct(
@@ -84,6 +86,7 @@ class Index extends \Magento\TargetRule\Model\ResourceModel\Index
             $customerSegmentData,
             $targetRuleData,
             $coreRegistry,
+            $stockHelper,
             $connectionName
         );
         $this->ruleConverter = $ruleConverter;

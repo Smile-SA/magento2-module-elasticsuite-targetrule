@@ -52,7 +52,7 @@ class Rule extends AbstractPlugin
      * @param RuleProductIndexerProcessor $ruleProductProcessor  Rule-product indexer processor
      * @param RulePercolatorIndexer       $rulePercolatorIndexer Indexer creating percolators for target rules in ES
      * @param RuleProductIndexResource    $indexResource         Product-Rule/Rule-product index resource model
-     * @param bool                        $cleanRulesCache       Whether to clean rules action index/cache after reindex
+     * @param boolean                     $cleanRulesCache       Whether to clean rules action index/cache after reindex
      */
     public function __construct(
         RuleProductIndexerProcessor $ruleProductProcessor,
