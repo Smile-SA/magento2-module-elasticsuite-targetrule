@@ -10,10 +10,9 @@
         }
     ],
     "require": {
-        "magento/framework": ">=100.2.0",
         "magento/magento-composer-installer": "*",
-        "magento/module-target-rule": ">=100.2.0",
-        "smile/elasticsuite" : "^2.3.8"
+        "magento/module-target-rule": ">=101.1.0",
+        "smile/elasticsuite" : "^2.8.0"
     },
     "require-dev": {
         "smile/magento2-smilelab-quality-suite": "^1.0.4"
