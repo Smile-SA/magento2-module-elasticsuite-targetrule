@@ -15,6 +15,8 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product\Special;
 
+use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
+
 /**
  * TargetRule Action Product Price (percentage) Condition search query translator model.
  *
@@ -26,11 +28,12 @@ class Price extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Prod
     /**
      * Build a search query for the current rule.
      *
-     * @param array $excludedCategories Categories excluded of query building (avoid infinite recursion).
+     * @param array    $excludedCategories  Categories excluded of query building (avoid infinite recursion).
+     * @param int|null $virtualCategoryRoot Category root for Virtual Category.
      *
-     * @return \Smile\ElasticsuiteCore\Search\Request\QueryInterface
+     * @return QueryInterface|null
      */
-    public function getSearchQuery($excludedCategories = [])
+    public function getSearchQuery($excludedCategories = [], $virtualCategoryRoot = null): ?QueryInterface
     {
         // Test below prevents to re-apply the price percentage if multiple calls on this condition.
         if (!$this->getAttribute()) {

@@ -20,8 +20,8 @@
     <!-- ES index handler declaration -->
     <virtualType name="targetRuleSearchIndexHandler" type="\Smile\ElasticsuiteCore\Indexer\GenericIndexerHandler">
         <arguments>
-            <argument name="indexName" xsi:type="string">catalog_product</argument>
-            <argument name="typeName" xsi:type="string">.percolator</argument>
+            <argument name="indexName" xsi:type="string">Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator::INDEX_IDENTIFIER</argument>
+            <argument name="typeName" xsi:type="string">_doc</argument>
         </arguments>
     </virtualType>
 
@@ -64,14 +64,6 @@
     <type name="Magento\CatalogSearch\Model\Indexer\Fulltext">
         <plugin name="smile_elasticsuite_target_rule_rules_fulltext_reindex_on_product_fulltext_reindex"
                 type="Smile\ElasticsuiteTargetRule\Plugin\CatalogSearch\Indexer\Fulltext"
-                sortOrder="10"
-                disabled="false" />
-    </type>
-
-    <!-- fix object fields ES mapping -->
-    <type name="Smile\ElasticsuiteCore\Index\Mapping\Field">
-        <plugin name="smile_elasticsuite_target_rule_alter_mapping_for_query_object_field"
-                type="Smile\ElasticsuiteTargetRule\Plugin\Core\Index\Mapping\Field"
                 sortOrder="10"
                 disabled="false" />
     </type>
@@ -119,4 +111,10 @@
         </arguments>
     </type>
 
+    <!-- Since ES 5, indices containing percolator queries should have a mapping
+         which reflects the mapping of the index you wanna percolate query against -->
+    <type name="Smile\ElasticsuiteCore\Api\Index\IndexOperationInterface">
+        <plugin name="merge_percolator_mapping"
+                type="Smile\ElasticsuiteTargetRule\Plugin\Index\IndexOperation"/>
+    </type>
 </config>

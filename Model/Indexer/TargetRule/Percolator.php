@@ -35,6 +35,11 @@ class Percolator implements \Magento\Framework\Indexer\ActionInterface, \Magento
     const INDEXER_ID = 'elasticsuite_targetrule_percolators';
 
     /**
+     * Elasticsearch index identifier
+     */
+    const INDEX_IDENTIFIER = 'targetrule';
+
+    /**
      * @var IndexerInterface
      */
     private $indexerHandler;
@@ -97,13 +102,7 @@ class Percolator implements \Magento\Framework\Indexer\ActionInterface, \Magento
 
         foreach ($storeIds as $storeId) {
             $dimension = $this->dimensionFactory->create(['name' => 'scope', 'value' => $storeId]);
-            /*
-             * NOT USING cleanIndex to avoid creating a new index with only percolators and not any product.
-             * The alternative would be to have a custom indexer handler/custom index operation allowing
-             * to perform a match_all "delete-by-query" call (ES plugin of that name required).
-             * The only caveat is that any change to the ".percolator" type XML configuration requires
-             * a full product reindex.
-             */
+            $this->indexerHandler->cleanIndex([$dimension]);
             $this->indexerHandler->saveIndex([$dimension], $this->fullAction->rebuildStoreIndex($storeId));
         }
     }

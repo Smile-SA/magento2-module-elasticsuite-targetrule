@@ -83,12 +83,19 @@ class PercolatorData implements DatasourceInterface
             $query = $this->queryBuilder->buildQuery(
                 $this->ruleConverter->getCatalogRuleFromConditions($rule)->getSearchQuery()
             );
+
             $percolatorData = [
                 'type' => 'product',
                 'percolator_type' => self::PERCOLATOR_TYPE,
                 'query' => $query,
             ];
-            $indexData[$ruleId] += $percolatorData;
+
+            $ruleData = $indexData[$ruleId] + $percolatorData;
+            if (isset($ruleData['is_active']))  {
+                $ruleData['is_active'] = (bool) $ruleData['is_active'];
+            }
+
+            $indexData[$ruleId] = ['_targetrule' => $ruleData];
         }
 
         return $indexData;

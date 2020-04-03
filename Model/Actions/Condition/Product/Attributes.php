@@ -16,6 +16,7 @@
 namespace Smile\ElasticsuiteTargetRule\Model\Actions\Condition\Product;
 
 use \Magento\TargetRule\Model\Actions\Condition\Product\Attributes as TargetRuleActionAttributes;
+use Smile\ElasticsuiteCore\Search\Request\QueryInterface;
 
 /**
  * TargetRule Action Product Attributes Condition search query translator model.
@@ -47,11 +48,12 @@ class Attributes extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition
      * Build a search query for the current rule.
      * Delegates to parent method after extracting the rule "value" from the context (ie the matched product)
      *
-     * @param array $excludedCategories Categories excluded of query building (avoid infinite recursion).
+     * @param array    $excludedCategories  Categories excluded of query building (avoid infinite recursion).
+     * @param int|null $virtualCategoryRoot Category root for Virtual Category.
      *
-     * @return \Smile\ElasticsuiteCore\Search\Request\QueryInterface
+     * @return QueryInterface|null
      */
-    public function getSearchQuery($excludedCategories = [])
+    public function getSearchQuery($excludedCategories = [], $virtualCategoryRoot = null): ?QueryInterface
     {
         if ($this->getValueType() == TargetRuleActionAttributes::VALUE_TYPE_CHILD_OF) {
             // Implicit: $this->getAttribute() == 'category_ids'.

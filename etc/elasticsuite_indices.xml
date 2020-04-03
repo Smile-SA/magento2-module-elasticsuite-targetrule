@@ -19,25 +19,25 @@
 <indices xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Smile_ElasticsuiteCore:etc/elasticsuite_indices.xsd">
 
-    <index identifier="catalog_product" defaultSearchType="product">
-        <type name=".percolator" idFieldName="rule_id">
+    <index identifier="targetrule" defaultSearchType="_doc">
+        <type name="_doc" idFieldName="_targetrule.rule_id">
             <datasources>
                 <datasource name="percolator">Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator\Datasource\PercolatorData</datasource>
             </datasources>
             <mapping>
                 <!-- Static fields handled by the base indexer (not datasource) -->
-                <field name="rule_id" type="integer" />
+                <field name="_targetrule.rule_id" type="integer" />
                 <!-- the field cannot be simply "name" because it is already used in the "product" index type -->
-                <field name="rule_name" type="string" />
+                <field name="_targetrule.rule_name" type="text" />
                 <!-- field used when querying, but native DB filter applied anyway -->
-                <field name="is_active" type="boolean" />
+                <field name="_targetrule.is_active" type="boolean" />
                 <!-- informative field only: not used when querying (native DB filter applied later on according to context) -->
-                <field name="apply_to" type="integer" />
+                <field name="_targetrule.apply_to" type="integer" />
 
                 <!-- Static fields handled by the "percolator" datasource -->
-                <field name="percolator_type" type="string" />
-                <field name="type" type="string" />
-                <field name="query" type="object" />
+                <field name="_targetrule.percolator_type" type="text" />
+                <field name="_targetrule.type" type="text" />
+                <field name="_targetrule.query" type="percolator" />
             </mapping>
         </type>
     </index>

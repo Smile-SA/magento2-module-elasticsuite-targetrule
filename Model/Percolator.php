@@ -1,10 +1,8 @@
 <?php
 /**
  * DISCLAIMER
- *
  * Do not edit or add to this file if you wish to upgrade this module to newer
  * versions in the future.
- *
  *
  * @category  Smile
  * @package   Smile\ElasticsuiteTargetRule
@@ -15,9 +13,10 @@
 
 namespace Smile\ElasticsuiteTargetRule\Model;
 
-use \Smile\ElasticsuiteCore\Api\Client\ClientFactoryInterface;
+use Smile\ElasticsuiteCore\Api\Client\ClientConfigurationInterface;
 use \Magento\Store\Model\StoreManagerInterface;
 use \Smile\ElasticsuiteCore\Api\Index\IndexOperationInterface;
+use Smile\ElasticsuiteCore\Client\ClientBuilder;
 use \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator\Datasource\PercolatorData;
 use \Psr\Log\LoggerInterface;
 
@@ -58,23 +57,25 @@ class Percolator
     /**
      * Percolator constructor.
      *
-     * @param ClientFactoryInterface  $clientFactory   ES client factory
-     * @param StoreManagerInterface   $storeManager    Store manager
-     * @param IndexOperationInterface $indexManager    ES index manager
-     * @param LoggerInterface         $logger          Logger
-     * @param string                  $indexIdentifier ES index name/identifier (as defined in XMLs)
+     * @param ClientConfigurationInterface $clientConfiguration Client configuration factory.
+     * @param ClientBuilder                $clientBuilder       ES client builder.
+     * @param StoreManagerInterface        $storeManager        Store manager
+     * @param IndexOperationInterface      $indexManager        ES index manager
+     * @param LoggerInterface              $logger              Logger
+     * @param string                       $indexIdentifier     ES index name/identifier (as defined in XMLs)
      */
     public function __construct(
-        ClientFactoryInterface $clientFactory,
+        ClientConfigurationInterface $clientConfiguration,
+        ClientBuilder $clientBuilder,
         StoreManagerInterface $storeManager,
         IndexOperationInterface $indexManager,
         LoggerInterface $logger,
         $indexIdentifier = 'catalog_product'
     ) {
-        $this->client       = $clientFactory->createClient();
-        $this->storeManager = $storeManager;
-        $this->indexManager = $indexManager;
-        $this->logger       = $logger;
+        $this->client          = $clientBuilder->build($clientConfiguration->getOptions());
+        $this->storeManager    = $storeManager;
+        $this->indexManager    = $indexManager;
+        $this->logger          = $logger;
         $this->indexIdentifier = $indexIdentifier;
     }
 
@@ -88,7 +89,7 @@ class Percolator
      */
     public function getMatchingRuleIds($productId, $storeId = null)
     {
-        $ruleIds = array();
+        $ruleIds = [];
 
         if (null === $storeId) {
             $storeId = $this->storeManager->getStore()->getId();
@@ -98,31 +99,31 @@ class Percolator
 
         try {
             $matches = $this->client->percolate(
-                array(
+                [
                     'index' => $index->getName(),
                     'type'  => 'product',
                     'id'    => $productId,
-                    'body'  => array(
-                        'filter' => array(
-                            'and' => array(
-                                array('term' => array('percolator_type' => PercolatorData::PERCOLATOR_TYPE)),
+                    'body'  => [
+                        'filter' => [
+                            'and' => [
+                                ['term' => ['percolator_type' => PercolatorData::PERCOLATOR_TYPE]],
                                 // Also done in \Magento\TargetRule\Model\Index::getRuleCollection
                                 // but limits the amount of requests/data exchanged.
-                                array('term' => array('is_active'       => true)),
-                            ),
-                        ),
+                                ['term' => ['is_active' => true]],
+                            ],
+                        ],
                         'percolate_format' => 'ids',
-                    ),
-                )
+                    ],
+                ]
             );
 
             // $this->logger->debug('Percolator matches id -------------');
             // $this->logger->debug(print_r($matches, true));
             foreach ($matches['matches'] as $match) {
                 $percolationData = $this->client->get(
-                    array('index' => $index->getName(), 'type' => '.percolator', 'id' => $match['_id'])
+                    ['index' => $index->getName(), 'type' => '.percolator', 'id' => $match['_id']]
                 );
-                $ruleIds[] = (int) $percolationData['_source']['rule_id'];
+                $ruleIds[]       = (int) $percolationData['_source']['rule_id'];
             }
 
             // $this->logger->debug('Matches rule ids  -------------');
