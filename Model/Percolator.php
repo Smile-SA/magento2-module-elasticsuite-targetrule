@@ -16,10 +16,12 @@ namespace Smile\ElasticsuiteTargetRule\Model;
 use Smile\ElasticsuiteCore\Api\Client\ClientConfigurationInterface;
 use \Magento\Store\Model\StoreManagerInterface;
 use \Smile\ElasticsuiteCore\Api\Index\IndexOperationInterface;
+use Smile\ElasticsuiteCore\Api\Search\Request\ContainerConfigurationInterface;
 use Smile\ElasticsuiteCore\Client\ClientBuilder;
 use Smile\ElasticsuiteCore\Search\Adapter\Elasticsuite\Response\QueryResponseFactory;
 use \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator\Datasource\PercolatorData;
 use \Psr\Log\LoggerInterface;
+use Smile\ElasticsuiteCore\Api\Search\Request\ContainerConfigurationInterfaceFactory;
 
 /**
  * Target rules percolator
@@ -61,15 +63,21 @@ class Percolator
     private $responseFactory;
 
     /**
+     * @var ContainerConfigurationInterfaceFactory
+     */
+    private $containerConfigFactory;
+
+    /**
      * Percolator constructor.
      *
-     * @param ClientConfigurationInterface $clientConfiguration  Client configuration factory.
-     * @param ClientBuilder                $clientBuilder        ES client builder.
-     * @param StoreManagerInterface        $storeManager         Store manager
-     * @param IndexOperationInterface      $indexManager         ES index manager
-     * @param QueryResponseFactory         $queryResponseFactory Search Query Response Factory
-     * @param LoggerInterface              $logger               Logger
-     * @param string                       $indexIdentifier      ES index name/identifier (as defined in XMLs)
+     * @param ClientConfigurationInterface           $clientConfiguration    Client configuration factory.
+     * @param ClientBuilder                          $clientBuilder          ES client builder.
+     * @param StoreManagerInterface                  $storeManager           Store manager
+     * @param IndexOperationInterface                $indexManager           ES index manager
+     * @param QueryResponseFactory                   $queryResponseFactory   Search Query Response Factory
+     * @param ContainerConfigurationInterfaceFactory $containerConfigFactory Search Request Container config Factory.
+     * @param LoggerInterface                        $logger                 Logger
+     * @param string                                 $indexIdentifier        ES index name/identifier (as defined in XMLs)
      */
     public function __construct(
         ClientConfigurationInterface $clientConfiguration,
@@ -77,15 +85,17 @@ class Percolator
         StoreManagerInterface $storeManager,
         IndexOperationInterface $indexManager,
         QueryResponseFactory $queryResponseFactory,
+        ContainerConfigurationInterfaceFactory $containerConfigFactory,
         LoggerInterface $logger,
         $indexIdentifier = \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator::INDEX_IDENTIFIER
     ) {
-        $this->client          = $clientBuilder->build($clientConfiguration->getOptions());
-        $this->storeManager    = $storeManager;
-        $this->indexManager    = $indexManager;
-        $this->responseFactory = $queryResponseFactory;
-        $this->logger          = $logger;
-        $this->indexIdentifier = $indexIdentifier;
+        $this->client                 = $clientBuilder->build($clientConfiguration->getOptions());
+        $this->storeManager           = $storeManager;
+        $this->indexManager           = $indexManager;
+        $this->responseFactory        = $queryResponseFactory;
+        $this->logger                 = $logger;
+        $this->indexIdentifier        = $indexIdentifier;
+        $this->containerConfigFactory = $containerConfigFactory;
     }
 
     /**
@@ -104,13 +114,13 @@ class Percolator
         }
 
         /** @var \Smile\ElasticsuiteCore\Api\Index\IndexInterface $index */
-        $index        = $this->indexManager->getIndexByName($this->indexIdentifier, $storeId);
-        $productIndex = $this->indexManager->getIndexByName('catalog_product', $storeId);
+        $index           = $this->indexManager->getIndexByName($this->indexIdentifier, $storeId);
+        $containerConfig = $this->getRequestContainerConfiguration($storeId, 'catalog_view_container');
 
         $percolatorQuery['percolate'] = [
             'field' => '_targetrule.query',
-            'index' => $productIndex->getName(),
-            'type'  => $productIndex->getDefaultSearchType()->getName(),
+            'index' => $containerConfig->getIndexName(),
+            'type'  => $containerConfig->getTypeName(),
             'id'    => $productId,
         ];
 
@@ -138,5 +148,27 @@ class Percolator
         }
 
         return $ruleIds;
+    }
+
+    /**
+     * Load the search request configuration (index, type, mapping, ...) using the search request container name.
+     *
+     * @param integer $storeId       Store id.
+     * @param string  $containerName Search request container name.
+     *
+     * @return ContainerConfigurationInterface
+     * @throws \LogicException Thrown when the search container is not found into the configuration.
+     */
+    private function getRequestContainerConfiguration($storeId, $containerName)
+    {
+        $config = $this->containerConfigFactory->create(
+            ['containerName' => $containerName, 'storeId' => $storeId]
+        );
+
+        if ($config === null) {
+            throw new \LogicException("No configuration exists for request {$containerName}");
+        }
+
+        return $config;
     }
 }
