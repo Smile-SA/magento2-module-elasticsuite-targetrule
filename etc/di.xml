@@ -20,7 +20,7 @@
     <!-- ES index handler declaration -->
     <virtualType name="targetRuleSearchIndexHandler" type="\Smile\ElasticsuiteCore\Indexer\GenericIndexerHandler">
         <arguments>
-            <argument name="indexName" xsi:type="string">Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator::INDEX_IDENTIFIER</argument>
+            <argument name="indexName" xsi:type="const">Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator::INDEX_IDENTIFIER</argument>
             <argument name="typeName" xsi:type="string">_doc</argument>
         </arguments>
     </virtualType>
