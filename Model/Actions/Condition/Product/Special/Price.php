@@ -36,7 +36,7 @@ class Price extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Prod
     public function getSearchQuery($excludedCategories = [], $virtualCategoryRoot = null): ?QueryInterface
     {
         // Test below prevents to re-apply the price percentage if multiple calls on this condition.
-        if (!$this->getAttribute()) {
+        if (!$this->getData('reference_price')) {
             $this->setAttribute('price');
 
             /** @var \Magento\TargetRule\Model\Index $context */
@@ -50,6 +50,7 @@ class Price extends \Smile\ElasticsuiteVirtualCategory\Model\Rule\Condition\Prod
             // Value contains the percent in "<operator> <percent>% of <matched product price>".
             $referencePrice = $resource->bindPercentOf($product->getFinalPrice(), $this->getValue());
             $this->setValue($referencePrice);
+            $this->setData('reference_price', $referencePrice);
         }
 
         return parent::getSearchQuery($excludedCategories);
