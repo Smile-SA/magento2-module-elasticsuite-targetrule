@@ -21,9 +21,6 @@
 
     <index identifier="targetrule" defaultSearchType="_doc">
         <type name="_doc" idFieldName="_targetrule.rule_id">
-            <datasources>
-                <datasource name="percolator">Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator\Datasource\PercolatorData</datasource>
-            </datasources>
             <mapping>
                 <!-- Static fields handled by the base indexer (not datasource) -->
                 <field name="_targetrule.rule_id" type="integer" />

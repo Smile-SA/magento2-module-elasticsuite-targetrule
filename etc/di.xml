@@ -117,4 +117,16 @@
         <plugin name="merge_percolator_mapping"
                 type="Smile\ElasticsuiteTargetRule\Plugin\Index\IndexOperation"/>
     </type>
+
+    <!-- Datasources resolver -->
+    <type name="Smile\ElasticsuiteCore\Index\DataSourceResolver">
+        <arguments>
+            <argument name="datasources" xsi:type="array">
+                <item name="catalog_product" xsi:type="array">
+                    <item name="percolator" xsi:type="object">Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator\Datasource\PercolatorData</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>
