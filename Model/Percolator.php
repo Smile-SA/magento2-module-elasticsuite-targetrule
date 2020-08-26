@@ -120,7 +120,6 @@ class Percolator
         $percolatorQuery['percolate'] = [
             'field' => '_targetrule.query',
             'index' => $containerConfig->getIndexName(),
-            'type'  => $containerConfig->getTypeName(),
             'id'    => $productId,
         ];
 
