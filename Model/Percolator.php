@@ -123,6 +123,10 @@ class Percolator
             'id'    => $productId,
         ];
 
+        if (method_exists($containerConfig, 'getTypeName')) {
+            $percolatorQuery['percolate']['type'] = $containerConfig->getTypeName();
+        }
+
         $percolatorFilter['query']['bool']['must'] = [
             ['term' => ['_targetrule.percolator_type' => PercolatorData::PERCOLATOR_TYPE]],
             // Also done in \Magento\TargetRule\Model\Index::getRuleCollection
