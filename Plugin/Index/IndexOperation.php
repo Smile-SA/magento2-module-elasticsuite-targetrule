@@ -56,7 +56,7 @@ class IndexOperation
         if ($indexIdentifier === \Smile\ElasticsuiteTargetRule\Model\Indexer\TargetRule\Percolator::INDEX_IDENTIFIER) {
             if ($subject->indexExists('catalog_product',$store)) {
                 $productIndex = $subject->getIndexByName('catalog_product', $store);
-                $this->client->putMapping($result->getName(), '_doc', $productIndex->getMapping()->asArray());
+                $this->client->putMapping($result->getName(), $productIndex->getMapping()->asArray());
             }
         }
 
