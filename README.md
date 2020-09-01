@@ -27,7 +27,7 @@ Magento Version         | Version of this module to use
 Magento 2.0.* EE        | NOT SUPPORTED
 Magento 2.1.* EE        | [Latest 1.1.x release](https://github.com/Smile-SA/magento2-module-elasticsuite-targetrule/releases/tag/1.1.0)
 Magento 2.2.* EE        | [Latest 1.2.x release](https://github.com/Smile-SA/magento2-module-elasticsuite-targetrule/releases/tag/1.2.0)
-
+Magento 2.3.* EE        | [Latest 1.4.x release](https://github.com/Smile-SA/magento2-module-elasticsuite-targetrule/releases/tag/1.4.1)
 
 ### Requirements
 
