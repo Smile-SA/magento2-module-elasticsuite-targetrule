@@ -120,12 +120,9 @@ class Percolator
         $percolatorQuery['percolate'] = [
             'field' => '_targetrule.query',
             'index' => $containerConfig->getIndexName(),
+            'type' => '_doc',
             'id'    => $productId,
         ];
-
-        if (method_exists($containerConfig, 'getTypeName')) {
-            $percolatorQuery['percolate']['type'] = $containerConfig->getTypeName();
-        }
 
         $percolatorFilter['query']['bool']['must'] = [
             ['term' => ['_targetrule.percolator_type' => PercolatorData::PERCOLATOR_TYPE]],
